@@ -1,10 +1,10 @@
 import Navbar from './components/Navbar';
 import { Container } from 'react-bootstrap';
-import { AuthProvider } from './components/authContext';
+import { AuthProvider } from './features/auth/authContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import LoginPage from './pages/signup'
-import AuthSuccess from './pages/authsuccess'
-import Home from './pages/home';
+import LoginPage from './features/auth/pages/signup'
+import AuthSuccess from './features/auth/authsuccess'
+import Home from './features/auth/pages/home';
 import PrivateRoute from './components/PrivateRoute';
 import {BrowserRouter, Routes, Route} from 'react-router-dom'
 

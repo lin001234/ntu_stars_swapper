@@ -5,9 +5,7 @@ const passport = require('passport');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-const authRoutes = require('./src/routes/auth');
-const userRoutes = require('./src/routes/users');
-const profileRoute = require('./src/routes/profile');
+const mainRoutes= require('./src/routes/index');
 require('./src/config/passport');
 
 const app = express();
@@ -38,10 +36,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// routes
-app.use('/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api', profileRoute);
+// Register all routes
+app.use('/api', mainRoutes);
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });

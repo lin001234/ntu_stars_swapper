@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
-import { AuthContext } from '../components/authContext';
+import { AuthContext } from './authContext';
 
 function AuthSuccess(){
     const navigate = useNavigate();
