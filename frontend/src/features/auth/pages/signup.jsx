@@ -2,7 +2,7 @@ const API_BASE_URL = 'http://localhost:3000';
 
 const LoginPage = ({ onLogin, isLoading }) => {
   const handleGoogleLogin = () => {
-    window.location.href = `${API_BASE_URL}/auth/google`;
+    window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
 
   return (
