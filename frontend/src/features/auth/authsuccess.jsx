@@ -8,23 +8,45 @@ function AuthSuccess(){
     const { setUser } = useContext(AuthContext);
 
     useEffect(() => {
-    fetch('http://localhost:3000/api/profile', {
-      credentials: 'include', // sends the cookie automatically
-    })
+      fetch('http://localhost:3000/api/profile', {
+        credentials: 'include', // sends the cookie automatically
+      })
       .then(res => {
+        console.log('AuthSuccess: Response status:', res.status);
         if (!res.ok) throw new Error('Not authenticated');
         return res.json();
       })
-      .then(() => {
-        // If login successful, redirect to home
-        navigate('/home');
+      .then((userData) => {
+        console.log('AuthSuccess: User data received:', userData);
+        // update user state in authcontext with fetched user data
+        setUser(userData);
+
+        // Use a small delay to ensure state is updated before navigation
+        setTimeout(() => {
+            console.log('AuthSuccess: Navigating to /home');
+            navigate('/home', { replace: true });
+        }, 100);
       })
-      .catch(() => {
+      .catch((error) => {
         // If token invalid or no token, redirect to login page
-        navigate('/login');
+        console.log('AuthSuccess: Error:', error);
+        setUser(null);
+        navigate('/login', { replace: true });
       });
   }, [navigate, setUser]);
 
-    return <p>Logging in...</p>;
+    return (
+        <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '200px' 
+        }}>
+            <div>
+                <p>Processing authentication...</p>
+                <p>Please wait...</p>
+            </div>
+        </div>
+    );
 }
 export default AuthSuccess;

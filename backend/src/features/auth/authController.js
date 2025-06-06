@@ -6,7 +6,7 @@ exports.handleOauthCallback = (req, res) =>{
             console.error('Session save error:', err);
             return res.status(500).send('Session save failed');
         }
-        res.redirect( `${process.env.CLIENT_URL}/home` || 'http://localhost:5173/home');
+        res.redirect( `${process.env.CLIENT_URL}/auth/success` || 'http://localhost:5173/auth/success');
     });
 };
 
