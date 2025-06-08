@@ -1,27 +1,27 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Button } from 'react-bootstrap';
+import { Row,Col,Card,Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Badge } from 'react-bootstrap';
 import axios from 'axios';
 
-function Home(){
+function Self_page(){
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchPosts = async () => {
-        try {
-            const response = await axios.get('http://localhost:3000/api/posts/');
-            // update posts with feteched data
-            setPosts(response.data.allposts || []);
-            setLoading(false);
-        } catch (err) {
-            setError(err.response?.data?.error || 'Failed to fetch post');
-            setLoading(false);
-        }
+    useEffect(()=>{
+        const fetchPosts = async() =>{
+            try {
+                const response = await axios.get('http://localhost:3000/api/posts/self',{
+                    withCredentials:true
+                });
+                setPosts(response.data.self_posts || []);
+                setLoading(false);
+            }catch (err){
+                setError(err.response?.data?.error || "Failed to fetch post");
+                setLoading(false);
+            }
         };
-
         fetchPosts();
     }, []);
 
@@ -68,4 +68,4 @@ function Home(){
     );
 }
 
-export default Home; 
+export default Self_page;

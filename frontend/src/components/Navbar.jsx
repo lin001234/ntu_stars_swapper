@@ -11,6 +11,7 @@ function NavigationBar() {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
             <Nav.Link as={Link} to="/">Home</Nav.Link>
+            <Nav.Link as={Link} to="/post/self">Own posts</Nav.Link>
             <Nav.Link as={Link} to="/create">Create Post</Nav.Link>
           </Nav>
         </Navbar.Collapse>
