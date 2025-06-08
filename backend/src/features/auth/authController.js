@@ -15,8 +15,21 @@ exports.logout = (req,res)=>{
         if(err){
             return res.status(500).json({ error : 'Logout failed'});
         }
-        res.json({message: 'Logged out successfully'});
-        res.redirect( `${process.env.CLIENT_URL}/login` || 'http://localhost:5173/login');
+        //Clear session cookie
+        res.clearCookie('connect.sid',{
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none':'lax',
+            httpOnly : true,
+            path:'/',
+        });
+
+        req.session.destroy((err) =>{
+            if(err){
+                console.error('Session destruction error:', err);
+                return;
+            }
+            return res.status(200).json({ message: 'Logged out successfully' });
+        });
     });
 };
 

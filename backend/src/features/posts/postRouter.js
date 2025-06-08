@@ -80,7 +80,7 @@ router.put('/:id', requireAuth,async(req,res) => {
 router.post('/', requireAuth, async(req,res) =>{
     try{
         const userId=req.user.id;
-        const username=req.user_metadata?.name;
+        const username=req.user?.user_metadata?.name;
         const {course_id,context,tag,index_id,index_exchange_id} = req.body;
         
         if (!course_id || !context || !tag || !index_id || !index_exchange_id){
