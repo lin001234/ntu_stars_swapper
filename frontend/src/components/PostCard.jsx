@@ -1,0 +1,42 @@
+import { Card, Badge, Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
+
+const PostCard = ({ post }) => {
+  return (
+    <Card className="h-100 d-flex flex-column">
+      <Card.Header>
+        <div className="d-flex justify-content-between align-items-center">
+          <Card.Title>{post.course_id}</Card.Title>
+          <small className="text-muted">User: {post.username}</small>
+        </div>
+      </Card.Header>
+      <Card.Body className="d-flex flex-column">
+        <Card.Text className="mb-3">{post.context}</Card.Text>
+
+        <div className="d-flex justify-content-between text-muted small mb-3">
+          <span>Index: {post.index_id}</span>
+          <span>Exchange: {post.index_exchange_id}</span>
+        </div>
+
+        {post.tag && (
+          <div className="mt-auto d-flex justify-content-between align-items-center">
+            <Badge bg="secondary">{post.tag}</Badge>
+            <Link to={`/post/${post.id}`}>
+              <Button variant="primary" size="sm">
+                View Details
+              </Button>
+            </Link>
+          </div>
+        )}
+      </Card.Body>
+      <Card.Footer className="text-muted small">
+        <div>Posted: {new Date(post.created_at).toLocaleString()}</div>
+        {post.updated_at && (
+          <div>Updated: {new Date(post.updated_at).toLocaleString()}</div>
+        )}
+      </Card.Footer>
+    </Card>
+  );
+};
+
+export default PostCard;
