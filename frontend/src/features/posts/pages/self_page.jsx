@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Row, Col, Card, Badge, Button} from "react-bootstrap";
+import { Row, Col, Card, Badge, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import PostCard from "../../../components/PostCard.jsx";
@@ -9,6 +9,10 @@ function Self_page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const truncateText = (text, maxLength = 50) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, 30).trim() + "...";
+  };
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -44,11 +48,33 @@ function Self_page() {
               </div>
             </Card.Header>
             <Card.Body className="d-flex flex-column">
-              <Card.Text className="mb-3">{post.context}</Card.Text>
+              <Card.Text className="mb-3">
+                {truncateText(post.context)}
+              </Card.Text>
 
               <div className="d-flex justify-content-between text-muted small mb-3">
                 <span>Index: {post.index_id}</span>
-                <span>Exchange: {post.index_exchange_id}</span>
+                <div>
+                  {post.index_exchange_id &&
+                  Array.isArray(post.index_exchange_id) &&
+                  post.index_exchange_id.length > 0 ? (
+                    <div>
+                      <span className="me-2">Exchange:</span>
+                      {post.index_exchange_id.map((id, index) => (
+                        <Badge
+                          key={index}
+                          bg="info"
+                          className="me-1"
+                          style={{ fontSize: "0.7em" }}
+                        >
+                          {id}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <span>Exchange: None</span>
+                  )}
+                </div>
               </div>
 
               {post.tag && (

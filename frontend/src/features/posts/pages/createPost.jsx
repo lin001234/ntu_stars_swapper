@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Form, Button, Alert, Container, Card, Row, Col } from 'react-bootstrap';
+import { Form, Button, Alert, Container, Card, Row, Col, Badge} from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -8,12 +8,37 @@ function CreatePost() {
     const [context, setContext] =useState('');
     const [tag, setTag] =useState('');
     const [index_id, setIndex_id] =useState('');
-    const [index_exchange_id, setIndex_exchange_id] =useState('');
+    const [index_exchange_id, setIndex_exchange_id] =useState([]);
+    const [currentExchangeId, setCurrentExchangeId] = useState('');
     const [error,setError] = useState(null);
     const navigate = useNavigate();
 
+    const handleAddExchangeId = () => {
+        if (currentExchangeId.trim() && !index_exchange_id.includes(currentExchangeId.trim())) {
+            setIndex_exchange_id([...index_exchange_id, currentExchangeId.trim()]);
+            setCurrentExchangeId('');
+        }
+    };
+
+    const handleRemoveExchangeId = (idToRemove) => {
+        setIndex_exchange_id(index_exchange_id.filter(id => id !== idToRemove));
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAddExchangeId();
+        }
+    };
+
     const handleSubmit = async(e) =>{
         e.preventDefault();
+
+        if (index_exchange_id.length === 0) {
+            setError('Please add at least one Index Exchange ID');
+            return;
+        }
+
         try{
             await axios.post('http://localhost:3000/api/posts',{
                 course_id,
@@ -73,6 +98,7 @@ function CreatePost() {
                                         placeholder="Enter tag (e.g., question, discussion)"
                                         value={tag}
                                         onChange={(e) => setTag(e.target.value)}
+                                        required
                                     />
                                 </Form.Group>
 
@@ -85,18 +111,59 @@ function CreatePost() {
                                                 placeholder="Enter index ID"
                                                 value={index_id}
                                                 onChange={(e) => setIndex_id(e.target.value)}
+                                                required
                                             />
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group className="mb-3" controlId="indexExchangeId">
-                                            <Form.Label>Index Exchange ID</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="Enter index exchange ID"
-                                                value={index_exchange_id}
-                                                onChange={(e) => setIndex_exchange_id(e.target.value)}
-                                            />
+                                            <Form.Label>Index Exchange IDs</Form.Label>
+                                            <div className="d-flex">
+                                                <Form.Control
+                                                    type="text"
+                                                    placeholder="Enter exchange ID and press Enter"
+                                                    value={currentExchangeId}
+                                                    onChange={(e) => setCurrentExchangeId(e.target.value)}
+                                                    onKeyPress={handleKeyPress}
+                                                />
+                                                <Button 
+                                                    variant="outline-primary" 
+                                                    className="ms-2"
+                                                    onClick={handleAddExchangeId}
+                                                    type="button"
+                                                >
+                                                    Add
+                                                </Button>
+                                            </div>
+                                            
+                                            {/* Display added exchange IDs */}
+                                            <div className="mt-2">
+                                                {index_exchange_id.map((id, index) => (
+                                                    <Badge 
+                                                        key={index} 
+                                                        bg="secondary" 
+                                                        className="me-2 mb-2"
+                                                        style={{ cursor: 'pointer' }}
+                                                    >
+                                                        {id}
+                                                        <Button
+                                                            variant="link"
+                                                            size="sm"
+                                                            className="text-white p-0 ms-1"
+                                                            onClick={() => handleRemoveExchangeId(id)}
+                                                            style={{ textDecoration: 'none' }}
+                                                        >
+                                                            ×
+                                                        </Button>
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                            
+                                            {index_exchange_id.length === 0 && (
+                                                <Form.Text className="text-muted">
+                                                    Add at least one Index Exchange ID
+                                                </Form.Text>
+                                            )}
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -109,6 +176,7 @@ function CreatePost() {
                                         variant="outline-secondary" 
                                         size="lg"
                                         onClick={() => navigate('/home')}
+                                        type="button"
                                     >
                                         Cancel
                                     </Button>

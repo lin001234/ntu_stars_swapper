@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Form, Alert } from 'react-bootstrap';
+import { Card, Button, Form, Alert, Badge } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -14,18 +14,23 @@ function PostDetailSelf(){
     const [context, setContext] =useState('');
     const [tag, setTag] =useState('');
     const [index_id, setIndex_id] =useState('');
-    const [index_exchange_id, setIndex_exchange_id] =useState('');
+    const [index_exchange_id, setIndex_exchange_id] =useState([]);
+    const [currentExchangeId, setCurrentExchangeId] = useState('');
 
     useEffect(() =>{
         const fetchPost = async () =>{
             try{
                 const response = await axios.get(`http://localhost:3000/api/posts/${id}`);
-                setPost(response.data.id_post);
-                setCourse_id(response.data.id_post.course_id);
-                setContext(response.data.id_post.context);
-                setTag(response.data.id_post.tag);
-                setIndex_id(response.data.id_post.index_id);
-                setIndex_exchange_id(response.data.id_post.index_exchange_id);
+                const postData =response.data.id_post;
+
+                setPost(postData);
+                setCourse_id(postData.course_id);
+                setContext(postData.context);
+                setTag(postData.tag);
+                setIndex_id(postData.index_id);
+                // handle index_exchange_id as array
+                const exchangeIds= postData.index_exchange_id;
+                setIndex_exchange_id(Array.isArray(exchangeIds) ? exchangeIds : []);
                 setLoading(false);
             } catch(err){
                 setError(err.response?.data?.error || err.message || "An unexpected error occurred");
@@ -36,8 +41,32 @@ function PostDetailSelf(){
         fetchPost();
     }, [id]);
 
+    const handleAddExchangeId = () => {
+        if (currentExchangeId.trim() && !index_exchange_id.includes(currentExchangeId.trim())) {
+            setIndex_exchange_id([...index_exchange_id, currentExchangeId.trim()]);
+            setCurrentExchangeId('');
+        }
+    };
+
+    const handleRemoveExchangeId = (idToRemove) => {
+        setIndex_exchange_id(index_exchange_id.filter(id => id !== idToRemove));
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAddExchangeId();
+        }
+    };
+
     const handleUpdate = async(e) =>{
         e.preventDefault();
+
+        if (index_exchange_id.length === 0) {
+            setError('Please add at least one Index Exchange ID');
+            return;
+        }
+
         try{
             const response = await axios.put(`http://localhost:3000/api/posts/${id}`,{
                 course_id,
@@ -98,6 +127,7 @@ function PostDetailSelf(){
                                         type="text"
                                         value={course_id}
                                         onChange={(e) => setCourse_id(e.target.value)}
+                                        required
                                     />
                                 </Form.Group>
 
@@ -108,6 +138,7 @@ function PostDetailSelf(){
                                         rows={5}
                                         value={context}
                                         onChange={(e) => setContext(e.target.value)}
+                                        required
                                     />
                                 </Form.Group>
 
@@ -117,6 +148,7 @@ function PostDetailSelf(){
                                         type="text"
                                         value={tag}
                                         onChange={(e) => setTag(e.target.value)}
+                                        required
                                     />
                                 </Form.Group>
 
@@ -126,16 +158,58 @@ function PostDetailSelf(){
                                         type="text"
                                         value={index_id}
                                         onChange={(e) => setIndex_id(e.target.value)}
+                                        required
                                     />
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Index Exchange ID</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={index_exchange_id}
-                                        onChange={(e) => setIndex_exchange_id(e.target.value)}
-                                    />
+                                    <Form.Label>Index Exchange IDs</Form.Label>
+                                    <div className="d-flex">
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Enter exchange ID and press Enter"
+                                            value={currentExchangeId}
+                                            onChange={(e) => setCurrentExchangeId(e.target.value)}
+                                            onKeyPress={handleKeyPress}
+                                        />
+                                        <Button 
+                                            variant="outline-primary" 
+                                            className="ms-2"
+                                            onClick={handleAddExchangeId}
+                                            type="button"
+                                        >
+                                            Add
+                                        </Button>
+                                    </div>
+                                    
+                                    {/* Display added exchange IDs */}
+                                    <div className="mt-2">
+                                        {index_exchange_id.map((id, index) => (
+                                            <Badge 
+                                                key={index} 
+                                                bg="secondary" 
+                                                className="me-2 mb-2"
+                                                style={{ cursor: 'pointer' }}
+                                            >
+                                                {id}
+                                                <Button
+                                                    variant="link"
+                                                    size="sm"
+                                                    className="text-white p-0 ms-1"
+                                                    onClick={() => handleRemoveExchangeId(id)}
+                                                    style={{ textDecoration: 'none' }}
+                                                >
+                                                    ×
+                                                </Button>
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                    
+                                    {index_exchange_id.length === 0 && (
+                                        <Form.Text className="text-muted">
+                                            Add at least one Index Exchange ID
+                                        </Form.Text>
+                                    )}
                                 </Form.Group>
 
                                 <div className="d-flex justify-content-between">
@@ -145,6 +219,7 @@ function PostDetailSelf(){
                                     <Button 
                                         variant="outline-secondary" 
                                         onClick={() => setIsEditing(false)}
+                                        type="button"
                                     >
                                         Cancel
                                     </Button>
@@ -185,7 +260,16 @@ function PostDetailSelf(){
                             <div className="text-muted small">
                                 {post.tag && <span className="me-3">Tag: {post.tag}</span>}
                                 {post.index_id && <span className="me-3">Index ID: {post.index_id}</span>}
-                                {post.index_exchange_id && <span>Exchange ID: {post.index_exchange_id}</span>}
+                                {post.index_exchange_id && Array.isArray(post.index_exchange_id) && post.index_exchange_id.length > 0 && (
+                                    <div className="mt-2">
+                                        <span>Exchange IDs: </span>
+                                        {post.index_exchange_id.map((id, index) => (
+                                            <Badge key={index} bg="info" className="me-1">
+                                                {id}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </>
                     )}

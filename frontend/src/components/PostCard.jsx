@@ -20,7 +20,20 @@ const PostCard = ({ post }) => {
 
         <div className="d-flex justify-content-between text-muted small mb-3">
           <span>Index: {post.index_id}</span>
-          <span>Exchange: {post.index_exchange_id}</span>
+          <div>
+            {post.index_exchange_id && Array.isArray(post.index_exchange_id) && post.index_exchange_id.length > 0 ? (
+              <div>
+                <span className="me-2">Exchange:</span>
+                {post.index_exchange_id.map((id, index) => (
+                  <Badge key={index} bg="info" className="me-1" style={{ fontSize: '0.7em' }}>
+                    {id}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <span>Exchange: None</span>
+            )}
+          </div>
         </div>
 
         {post.tag && (
