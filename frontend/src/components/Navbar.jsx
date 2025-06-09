@@ -10,13 +10,13 @@ function NavigationBar() {
     <>
       <Navbar bg="dark" variant="dark" expand="lg">
         <Container>
-          <Navbar.Brand as={Link} to="/">NTU Star swapper</Navbar.Brand>
+          <Navbar.Brand as={Link} to="/">NTU Stars Swapper</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto">
               <Nav.Link as={Link} to="/">Home</Nav.Link>
               <Nav.Link as={Link} to="/post/filter">Search</Nav.Link>
-              <Nav.Link as={Link} to="/post/self">Own posts</Nav.Link>
+              <Nav.Link as={Link} to="/post/self">Own Posts</Nav.Link>
               <Nav.Link as={Link} to="/create">Create Post</Nav.Link>
               <Button 
                   variant="outline-light" 
