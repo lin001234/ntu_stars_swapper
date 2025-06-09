@@ -2,6 +2,11 @@ import { Card, Badge, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
 const PostCard = ({ post }) => {
+  const truncateText =(text, maxLength=50) =>{
+    if(text.length <= maxLength) return text;
+    return text.substring(0,30).trim() + "...";
+  }
+
   return (
     <Card className="h-100 d-flex flex-column">
       <Card.Header>
@@ -11,7 +16,7 @@ const PostCard = ({ post }) => {
         </div>
       </Card.Header>
       <Card.Body className="d-flex flex-column">
-        <Card.Text className="mb-3">{post.context}</Card.Text>
+        <Card.Text className="mb-3">{truncateText(post.context)}</Card.Text>
 
         <div className="d-flex justify-content-between text-muted small mb-3">
           <span>Index: {post.index_id}</span>
