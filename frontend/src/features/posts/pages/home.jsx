@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Button } from 'react-bootstrap';
+import { Row, Col, Card, Button, Badge} from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { Badge } from 'react-bootstrap';
 import axios from 'axios';
 
 function Home(){

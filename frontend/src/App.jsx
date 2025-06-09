@@ -10,6 +10,7 @@ import PrivateRoute from './components/PrivateRoute';
 import PostDetail from './features/posts/pages/postDetail';
 import Self_page from './features/posts/pages/self_page';
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
+import Filtered_posts from './features/posts/pages/filter_page';
 
 function App() {
 
@@ -28,7 +29,8 @@ function App() {
               <Route path='/home' element={<Home />} />
               <Route path="/create" element={<CreatePost />} />
               <Route path="/post/:id" element={<PostDetail />} />
-              <Route path='post/self' element={<Self_page />} />
+              <Route path='/post/self' element={<Self_page />} />
+              <Route path='/post/filter' element={<Filtered_posts />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/" replace />} />

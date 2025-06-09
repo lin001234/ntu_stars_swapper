@@ -54,54 +54,25 @@ async function deletePost(id){
     return data;
 }
 
-async function filter_byTag(tag){
-    const {data,error} = await supabase
-    .from('posts')
-    .select('*')
-    .eq('tag',tag);
+async function filterPosts(filters){
+    let query = supabase.from('posts').select('*');
+    
+    for (const key in filters){
+        const value = filters[key];
 
-    if (error) throw error;
-    return data;
-}
+        if (value === undefined || value === null || value === '' || (Array.isArray(value) && (value.length === 0 || (value.length === 1 && value[0] === '')))){
+            continue;
+        }
 
-async function filter_byMod(course_id){
-    const {data,error} = await supabase
-    .from('posts')
-    .select('*')
-    .eq('course_id',course_id);
-
-    if (error) throw error;
-    return data;
-}
-
-// reasoning is if i want find course_id, it would be in others exchange_id
-async function filter_byIndexid(course_id, index_id){
-    const {data,error} = await supabase
-    .from('posts')
-    .select('*')
-    .match({course_id: course_id, index_exchange_id: index_id});
-
-    if (error) throw error;
-    return data;
-}
-
-async function filter_byIndex_exchange_id(course_id, index_exchange_id){
-    const {data,error} = await supabase
-    .from('posts')
-    .select('*')
-    .match({course_id: course_id, index_id: index_exchange_id});
-
-    if (error) throw error;
-    return data;
-}
-
-async function filter_by_all(course_id, index_id, index_exchange_id){
-    const {data,error} = await supabase
-    .from('posts')
-    .select('*')
-    .match({course_id: course_id, index_id: index_exchange_id, index_exchange_id:index_id})
-
-    if (error) throw error;
+        if(Array.isArray(value)){
+            query=query.in(key,value);
+        }
+        else{
+            query = query.eq(key, value);
+        }
+    }
+    const {data,error} =await query;
+    if(error) throw error;
     return data;
 }
 
@@ -144,9 +115,5 @@ module.exports = {
   createPost,
   updatePost,
   deletePost,
-  filter_byTag,
-  filter_byMod,
-  filter_byIndexid,
-  filter_byIndex_exchange_id,
-  filter_by_all
+  filterPosts,
 };

@@ -25,6 +25,33 @@ router.get('/self', requireAuth, async(req,res) =>{
     }
 })
 
+//Get filtered post
+router.get('/filter', async(req,res) =>{
+    try{
+        const filters={
+            course_id:req.query.course_id,
+            tag:req.query.tag,
+            index_id: Array.isArray(req.query.index_id) ? req.query.index_id: req.query.index_id?.split(','),
+            index_exchange_id: Array.isArray(req.query.index_exchange_id) ?req.query.index_exchange_id : req.query.index_exchange_id?.split(','),
+        };
+
+        const filteredPosts = await posts.filterPosts(filters);
+
+        res.json({
+            success:true,
+            posts:filteredPosts,
+            count: filteredPosts.length 
+        })
+    }catch (err) {
+    console.error('Filter posts error:', err.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to filter posts',
+      details: err.message 
+    });
+    }
+})
+
 //Router to get specific post
 router.get('/:id', async(req,res) =>{
     try{
@@ -36,6 +63,7 @@ router.get('/:id', async(req,res) =>{
         res.status(500).json({success:false, error:'Failed to get post'});
     }
 })
+
 
 // Update post
 router.put('/:id', requireAuth,async(req,res) => {
@@ -123,6 +151,7 @@ router.delete('/:id', requireAuth, async(req,res) => {
         res.status(500).json({success:false,error:'Failed to delete post'});
     }
 })
+
 
 
 
