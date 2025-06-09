@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Form, Alert } from 'react-bootstrap';
+import { Card, Button, Form, Alert, Badge} from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -44,7 +44,9 @@ function PostDetail(){
         <div className="container mt-4">
             <Card className="shadow">
                 <Card.Body>
-                    {error && <Alert variant="danger">{error}</Alert>}
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <Card.Title>{post.title || "Post Details"}</Card.Title>
+                    </div>
 
                     <Card.Subtitle className="mb-2 text-muted">
                         Course ID: {post.course_id}
@@ -57,7 +59,16 @@ function PostDetail(){
                     <div className="text-muted small">
                         {post.tag && <span className="me-3">Tag: {post.tag}</span>}
                         {post.index_id && <span className="me-3">Index ID: {post.index_id}</span>}
-                        {post.index_exchange_id && <span>Exchange ID: {post.index_exchange_id}</span>}
+                        {post.index_exchange_id && Array.isArray(post.index_exchange_id) && post.index_exchange_id.length > 0 && (
+                            <div className="mt-2">
+                                <span>Exchange IDs: </span>
+                                {post.index_exchange_id.map((id, index) => (
+                                    <Badge key={index} bg="info" className="me-1">
+                                        {id}
+                                    </Badge>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </Card.Body>
             </Card>

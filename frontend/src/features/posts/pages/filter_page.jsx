@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Row,
-  Col,
-  Button,
-  Form,
-  Spinner,
-  Alert,
-} from "react-bootstrap";
+import {Row,Col,Button,Form,Spinner,Alert,Badge,InputGroup} from "react-bootstrap";
 import axios from "axios";
 import PostCard from "../../../components/PostCard.jsx";
 
@@ -16,8 +9,11 @@ function Filtered_posts() {
     course_id: "",
     tag: "",
     index_id: "",
-    index_exchange_id: "",
+    index_exchange_id: [],
   });
+
+  const [exchangeIdInput, setExchangeIdInput] = useState("");
+  const [indexIdInput, setIndexIdInput] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,7 +26,15 @@ function Filtered_posts() {
       const params = {};
 
       for (const key in filters) {
-        if (filters[key]) params[key] = filters[key];
+        if (filters[key]) {
+        // Handle arrays properly - send as actual arrays
+          if (Array.isArray(filters[key]) && filters[key].length > 0) {
+            params[key] = filters[key];
+          } 
+          else if (!Array.isArray(filters[key])) {
+            params[key] = filters[key];
+          }
+        }
       }
 
       const response = await axios.get(
@@ -54,10 +58,59 @@ function Filtered_posts() {
   }, []);
 
   const handleInputChange = (e) => {
+    const {name, value} = e.target;
     setFilters({
       ...filters,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+  };
+
+  const handleAddExchangeId = () => {
+    if (exchangeIdInput.trim() && !filters.index_exchange_id.includes(exchangeIdInput.trim())) {
+      setFilters({
+        ...filters,
+        index_exchange_id: [...filters.index_exchange_id, exchangeIdInput.trim()]
+      });
+      setExchangeIdInput("");
+    }
+  };
+
+  const handleRemoveExchangeId = (idToRemove) => {
+    setFilters({
+      ...filters,
+      index_exchange_id: filters.index_exchange_id.filter(id => id !== idToRemove)
+    });
+  };
+
+  const handleAddIndexId = () => {
+    if (indexIdInput.trim() && !filters.index_id.includes(indexIdInput.trim())) {
+      setFilters({
+        ...filters,
+        index_id: [...filters.index_id, indexIdInput.trim()]
+      });
+      setIndexIdInput("");
+    }
+  };
+
+  const handleRemoveIndexId = (idToRemove) => {
+    setFilters({
+      ...filters,
+      index_id: filters.index_id.filter(id => id !== idToRemove)
+    });
+  };
+
+  const handleExchangeIdKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddExchangeId();
+    }
+  };
+
+  const handleIndexIdKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddIndexId();
+    }
   };
 
   const handleFilter = (e) => {
@@ -89,22 +142,84 @@ function Filtered_posts() {
             />
           </Col>
           <Col md={3}>
-            <Form.Control
-              type="text"
-              name="index_id"
-              placeholder="Index ID"
-              value={filters.index_id}
-              onChange={handleInputChange}
-            />
+            <Form.Label className="small text-muted">Index IDs</Form.Label>
+            <InputGroup>
+              <Form.Control
+                type="text"
+                placeholder="Add Index ID"
+                value={indexIdInput}
+                onChange={(e) => setIndexIdInput(e.target.value)}
+                onKeyPress={handleIndexIdKeyPress}
+              />
+              <Button 
+                variant="outline-primary" 
+                onClick={handleAddIndexId}
+                disabled={!indexIdInput.trim()}
+              >
+                Add
+              </Button>
+            </InputGroup>
+            {filters.index_id.length > 0 && (
+              <div className="mt-2">
+                {filters.index_id.map((id, index) => (
+                  <Badge 
+                    key={index} 
+                    bg="primary" 
+                    className="me-1 mb-1"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {id} 
+                    <span 
+                      className="ms-1" 
+                      onClick={() => handleRemoveIndexId(id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      ×
+                    </span>
+                  </Badge>
+                ))}
+              </div>
+            )}
           </Col>
           <Col md={3}>
-            <Form.Control
-              type="text"
-              name="index_exchange_id"
-              placeholder="Index Exchange ID"
-              value={filters.index_exchange_id}
-              onChange={handleInputChange}
-            />
+            <Form.Label className="small text-muted">Index Exchange IDs</Form.Label>
+            <InputGroup>
+              <Form.Control
+                type="text"
+                placeholder="Add Exchange ID"
+                value={exchangeIdInput}
+                onChange={(e) => setExchangeIdInput(e.target.value)}
+                onKeyPress={handleExchangeIdKeyPress}
+              />
+              <Button 
+                variant="outline-primary" 
+                onClick={handleAddExchangeId}
+                disabled={!exchangeIdInput.trim()}
+              >
+                Add
+              </Button>
+            </InputGroup>
+            {filters.index_exchange_id.length > 0 && (
+              <div className="mt-2">
+                {filters.index_exchange_id.map((id, index) => (
+                  <Badge 
+                    key={index} 
+                    bg="secondary" 
+                    className="me-1 mb-1"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {id} 
+                    <span 
+                      className="ms-1" 
+                      onClick={() => handleRemoveExchangeId(id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      ×
+                    </span>
+                  </Badge>
+                ))}
+              </div>
+            )}
           </Col>
           <Col xs="auto">
             <Button type="submit" variant="primary">

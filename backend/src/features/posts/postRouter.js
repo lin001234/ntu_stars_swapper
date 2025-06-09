@@ -32,7 +32,15 @@ router.get('/filter', async(req,res) =>{
             course_id:req.query.course_id,
             tag:req.query.tag,
             index_id: Array.isArray(req.query.index_id) ? req.query.index_id: req.query.index_id?.split(','),
-            index_exchange_id: Array.isArray(req.query.index_exchange_id) ?req.query.index_exchange_id : req.query.index_exchange_id?.split(','),
+            index_exchange_id: req.query.index_exchange_id ? 
+                (Array.isArray(req.query.index_exchange_id) ? 
+                    req.query.index_exchange_id : 
+                    (typeof req.query.index_exchange_id === 'string' ? 
+                        req.query.index_exchange_id.split(',').map(id => id.trim()).filter(id => id !== '') :
+                        [req.query.index_exchange_id]
+                    )
+                ) : undefined,
+                
         };
 
         const filteredPosts = await posts.filterPosts(filters);

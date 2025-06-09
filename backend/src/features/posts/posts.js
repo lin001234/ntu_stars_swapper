@@ -65,7 +65,13 @@ async function filterPosts(filters){
         }
 
         if(Array.isArray(value)){
-            query=query.in(key,value);
+            if (key === 'index_exchange_id') {
+                // Use OR conditions to check if the array column contains any of the values
+                const orConditions = value.map(val => `${key}.cs.{${val}}`);
+                query = query.or(orConditions.join(','));
+            }else{
+                query=query.in(key,value);
+            }
         }
         else{
             query = query.eq(key, value);

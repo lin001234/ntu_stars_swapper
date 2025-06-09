@@ -124,7 +124,7 @@ function CreatePost() {
                                                     placeholder="Enter exchange ID and press Enter"
                                                     value={currentExchangeId}
                                                     onChange={(e) => setCurrentExchangeId(e.target.value)}
-                                                    onKeyPress={handleKeyPress}
+                                                    onKeyUp={handleKeyPress}
                                                 />
                                                 <Button 
                                                     variant="outline-primary" 
