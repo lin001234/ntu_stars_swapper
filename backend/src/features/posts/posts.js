@@ -91,12 +91,12 @@ async function updatePost(id,course_id,context,tag,index_id,index_exchange_id){
     if (!existing) {
         return null; // Not found
     }
-
+    const updated_at = new Date().toISOString().replace('T', ' ').replace('Z', '+00');  // Replacing 'T' with space and 'Z' with '+00'
     
     // Step 2: Proceed with update
     const { data, error } = await supabase
         .from('posts')
-        .update({ course_id, context, tag, index_id, index_exchange_id })
+        .update({ course_id, context, tag, index_id, index_exchange_id, updated_at})
         .eq('id', id)
         .select();
 

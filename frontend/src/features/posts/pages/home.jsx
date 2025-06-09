@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Row, Col } from "react-bootstrap";
+import PostCard from "../../../components/PostCard";
 import axios from "axios";
 
 function Home() {
