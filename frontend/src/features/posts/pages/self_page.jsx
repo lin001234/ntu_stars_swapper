@@ -51,7 +51,7 @@ function Self_page(){
                         <Badge bg="secondary">{post.tag}</Badge>
                     </div>
                     )}
-                    <Link to={`/post/${post.id}`} className="d-block mt-2">
+                    <Link to={`/post/${post.id}/self`} className="d-block mt-2">
                     <Button variant="primary" size="sm">View Details</Button>
                     </Link>
                 </Card.Body>
