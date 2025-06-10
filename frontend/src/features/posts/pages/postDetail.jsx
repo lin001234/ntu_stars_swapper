@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, Button, Form, Alert, Badge} from 'react-bootstrap';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
 function PostDetail(){
@@ -67,9 +67,18 @@ function PostDetail(){
                                         {id}
                                     </Badge>
                                 ))}
+                                <div style={{ display: "flex", justifyContent: 'flex-end' }}>
+                                <Link to={`/post/${post.id}/chat`}>
+                                    <Button variant="primary" size="sm">
+                                        Join Chat
+                                    </Button>
+                                </Link>
+                                </div>
                             </div>
                         )}
+                        
                     </div>
+                    
                 </Card.Body>
             </Card>
         </div>
