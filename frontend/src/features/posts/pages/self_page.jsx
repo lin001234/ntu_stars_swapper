@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Row, Col, Card, Badge, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import PostCard from "../../../components/PostCard.jsx";
+import PostCard from "../../../components/PostCard";
 
 function Self_page() {
   const [posts, setPosts] = useState([]);

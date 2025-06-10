@@ -79,11 +79,11 @@ function PostDetailSelf(){
                 withCredentials: true,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Prefer': 'return=representation' // This tells PostgREST to return the updated row
+                    'Prefer': 'return=representation' 
                 }
             });
-            // Handle the response based on your API's actual response structure
-            const updatedPost = response.data.post || response.data; // Try both formats
+            // Handle the response based on API's actual response structure
+            const updatedPost = response.data.post || response.data; // try both formats
 
             setPost(updatedPost);
             setIsEditing(false);

@@ -18,6 +18,40 @@ function Filtered_posts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Only when clicking filter for exact string search
+  const searchPosts = async () =>{
+    setLoading(true);
+    setError(null);
+
+    try{
+      const params={};
+      for (const key in filters){
+        if (filters[key]) {
+        // Handle arrays properly - send as actual arrays
+          if (Array.isArray(filters[key]) && filters[key].length > 0) {
+            params[key] = filters[key];
+          } 
+          else if (!Array.isArray(filters[key])) {
+            params[key] = filters[key];
+          }
+        }
+      }
+      const response = await axios.get(
+        "http://localhost:3000/api/posts/search",
+        { params }
+      );
+      setPosts(response.data.posts || []);
+    } catch(err){
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "An unexpected error occurred"
+      );
+    } finally{
+      setLoading(false);
+    }
+  }
+  // Real time filtering for substrings
   const fetchPosts = async () => {
     setLoading(true);
     setError(null);
@@ -55,7 +89,7 @@ function Filtered_posts() {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [filters]);
 
   const handleInputChange = (e) => {
     const {name, value} = e.target;
@@ -113,30 +147,44 @@ function Filtered_posts() {
     }
   };
 
+  //for filter button 
   const handleFilter = (e) => {
     e.preventDefault();
-    fetchPosts();
+    searchPosts();
   };
 
+  //Add a reset function to clear all filters
+  const handleReset = () => {
+    setFilters({
+      course_id: "",
+      tag: "",
+      index_id: "",
+      index_exchange_id: [],
+    });
+    setExchangeIdInput("");
+    setIndexIdInput("");
+  };
   return (
     <div className="container py-4">
       <h2 className="mb-4">Filter Posts</h2>
       <Form onSubmit={handleFilter} className="mb-4">
         <Row className="g-3">
           <Col md={3}>
+          <Form.Label className="small text-muted">Course ID</Form.Label>
             <Form.Control
               type="text"
               name="course_id"
-              placeholder="Course ID"
+              placeholder="Add Course ID"
               value={filters.course_id}
               onChange={handleInputChange}
             />
           </Col>
           <Col md={3}>
+            <Form.Label className="small text-muted">Tag</Form.Label>
             <Form.Control
               type="text"
               name="tag"
-              placeholder="Tag"
+              placeholder="Add Tag"
               value={filters.tag}
               onChange={handleInputChange}
             />
@@ -149,7 +197,7 @@ function Filtered_posts() {
                 placeholder="Add Index ID"
                 value={indexIdInput}
                 onChange={(e) => setIndexIdInput(e.target.value)}
-                onKeyPress={handleIndexIdKeyPress}
+                onKeyUp={handleIndexIdKeyPress}
               />
               <Button 
                 variant="outline-primary" 
@@ -189,7 +237,7 @@ function Filtered_posts() {
                 placeholder="Add Exchange ID"
                 value={exchangeIdInput}
                 onChange={(e) => setExchangeIdInput(e.target.value)}
-                onKeyPress={handleExchangeIdKeyPress}
+                onKeyUp={handleExchangeIdKeyPress}
               />
               <Button 
                 variant="outline-primary" 
@@ -223,7 +271,12 @@ function Filtered_posts() {
           </Col>
           <Col xs="auto">
             <Button type="submit" variant="primary">
-              Filter
+              Search
+            </Button>
+          </Col>
+          <Col xs="auto">
+            <Button type="button" variant="outline-secondary" onClick={handleReset}>
+              Reset Filters
             </Button>
           </Col>
         </Row>

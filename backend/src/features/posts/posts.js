@@ -54,7 +54,8 @@ async function deletePost(id){
     return data;
 }
 
-async function filterPosts(filters){
+// Exact string search for filter button
+async function searchPosts(filters){
     let query = supabase.from('posts').select('*');
     
     for (const key in filters){
@@ -77,7 +78,46 @@ async function filterPosts(filters){
             query = query.eq(key, value);
         }
     }
-    const {data,error} =await query;
+    const {data,error} =await query.order('updated_at', { ascending: false });
+    if(error) throw error;
+    return data;
+}
+
+//substring search for autosearch
+async function filterPosts(filters){
+    let query = supabase.from('posts').select('*');
+    
+    for (const key in filters){
+        const value = filters[key];
+
+        if (value === undefined || value === null || value === '' || (Array.isArray(value) && (value.length === 0 || (value.length === 1 && value[0] === '')))){
+            continue;
+        }
+
+        if(Array.isArray(value)){
+            if (key === 'index_exchange_id') {
+                // Use OR conditions to check if the array column contains any of the values
+                const orConditions = value.map(val => `${key}.cs.{${val}}`);
+                query = query.or(orConditions.join(','));
+            }
+            else{
+                query=query.in(key,value);
+            }
+        }
+        else{
+            switch(key){
+                case 'course_id':
+                case 'tag':
+                    query=query.textSearch(key, `'${value}':*`);
+                    break;
+                case 'index_id':
+                case 'index_exchange_id':
+                    query=query.textSearch(key, `'${value}'`);
+                    break;
+            }
+        }
+    }
+    const {data,error} =await query.order('created_at', { ascending: false });
     if(error) throw error;
     return data;
 }
@@ -122,4 +162,5 @@ module.exports = {
   updatePost,
   deletePost,
   filterPosts,
+  searchPosts,
 };
