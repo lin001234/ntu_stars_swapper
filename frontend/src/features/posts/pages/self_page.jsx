@@ -80,7 +80,7 @@ function Self_page() {
               {post.tag && (
                 <div className="mt-auto d-flex justify-content-between align-items-center">
                   <Badge bg="secondary">{post.tag}</Badge>
-                  <Link to={`/post/${post.id}/self`}>
+                  <Link to={`/post/${post.id}`}>
                     <Button variant="primary" size="sm">
                       View Details
                     </Button>
