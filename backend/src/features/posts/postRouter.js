@@ -2,6 +2,7 @@ const express = require('express');
 const posts = require('./posts');
 const router = express.Router();
 const { requireAuth } = require('../../middleware/auth');
+
 // Route to get all posts
 router.get('/', async(req,res)=>{
     try{
