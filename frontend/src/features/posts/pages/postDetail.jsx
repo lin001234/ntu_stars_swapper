@@ -88,10 +88,13 @@ function PostDetail(){
                                 ))}
                             </div>
                         )}
-                        
-                    </div>
-                    
+                    </div>  
                 </Card.Body>
+                <Card.Footer>
+                    <Button variant="secondary" size="sm" onClick={() => navigate(-1)}>
+                        Back
+                    </Button>
+                </Card.Footer>
             </Card>
         </div>
     );

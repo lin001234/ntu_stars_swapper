@@ -1,7 +1,8 @@
 import { Card, Badge, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link} from "react-router-dom";
 
 const PostCard = ({ post }) => {
+
   const truncateText =(text, maxLength=50) =>{
     if(text.length <= maxLength) return text;
     return text.substring(0,30).trim() + "...";
