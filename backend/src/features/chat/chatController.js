@@ -4,12 +4,43 @@ const { supabase } = require('../../config/supabase');
 const router = express.Router();
 
 async function createChat(user1_id,user2_id){
+    // Ensure both are strings
+    if (typeof user1_id !== 'string' || typeof user2_id !== 'string') {
+        throw new Error(`Invalid user IDs: ${JSON.stringify({ user1_id, user2_id })}`);
+    }
+
+    // Have to ensure user1_id is smaller than 2, cus easier to grp
+    const [u1,u2] = [user1_id,user2_id].sort((a, b) => a.localeCompare(b));
+
+    const chatPayload = { user1_id: u1, user2_id: u2 };
+
     const {data,error} =await supabase
     .from('chats')
-    .insert([{user1_id,user2_id}])
+    .insert([chatPayload])
     .select()
-    .single();
+    .maybeSingle();
 
     if(error) throw error;
+    if (!data) throw new Error("Insert succeeded but no data returned.");
     return data;
+}
+
+async function getChatId(user1_id,user2_id){
+    const [u1,u2] = [user1_id,user2_id].sort((a, b) => a.localeCompare(b));
+
+    const {data,error} = await supabase
+    .from('chats')
+    .select('id')
+    .eq('user1_id',u1)
+    .eq('user2_id',u2)
+    .maybeSingle();
+    
+    if(error) throw error;
+    if(!data) throw new Error('Chats not found');
+    return data.id;
+}
+
+module.exports={
+    createChat,
+    getChatId,
 }

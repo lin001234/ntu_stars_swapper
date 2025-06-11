@@ -5,6 +5,7 @@ const authRoutes = require('../features/auth/authRouter');
 const profileRoutes = require('./profile');
 const userRoute = require('./users');
 const postRoutes = require('../features/posts/postRouter');
+const chatRoutes = require('../features/chat/chatRouter');
 
 router.use('/auth', authRoutes);
 
@@ -14,4 +15,5 @@ router.use('/user', userRoute);
 
 router.use('/posts', postRoutes);
 
+router.use('/chats', chatRoutes);
 module.exports= router;

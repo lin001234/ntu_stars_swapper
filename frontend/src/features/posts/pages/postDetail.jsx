@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { Card, Button, Form, Alert, Badge} from 'react-bootstrap';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { axiosInstance } from '../../../components/axios';
-// Fix the join chat button later
+import ChatButton from '../../../components/ChatButton';
+
 function PostDetail(){
     const {id} = useParams();
     const navigate = useNavigate();
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [course_id, setCourse_id] = useState('');
     const [context, setContext] =useState('');
@@ -33,7 +35,18 @@ function PostDetail(){
                 setLoading(false);
             }
         };
+
+        const fetchCurrentUser = async() =>{
+            try{
+                const response= await axiosInstance.get('/auth/status');
+                console.log('Current user response:', response.data);
+                setCurrentUser(response.data.user);
+            }catch (err){
+                console.error('Failed to fetch current user:', err);
+            }
+        };
         fetchPost();
+        fetchCurrentUser();
     }, [id]);
 
     if (loading) return <div>Loading...</div>;
@@ -46,6 +59,12 @@ function PostDetail(){
                 <Card.Body>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <Card.Title>{post.title || "Post Details"}</Card.Title>
+                        <ChatButton 
+                            postOwnerId={post.user_id}
+                            currentUserId={currentUser.id}
+                            size="sm"
+                            variant="outline-primary"
+                        />
                     </div>
 
                     <Card.Subtitle className="mb-2 text-muted">
@@ -67,13 +86,6 @@ function PostDetail(){
                                         {id}
                                     </Badge>
                                 ))}
-                                <div style={{ display: "flex", justifyContent: 'flex-end' }}>
-                                <Link to={`/post/${post.id}/chat`}>
-                                    <Button variant="primary" size="sm">
-                                        Join Chat
-                                    </Button>
-                                </Link>
-                                </div>
                             </div>
                         )}
                         

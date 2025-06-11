@@ -35,3 +35,9 @@ async function deleteChatMessage(id,sender_id){
     if(error) throw error;
     return data;
 }
+
+module.exports={
+    getChatMessage,
+    createChatMessage,
+    deleteChatMessage,
+};
