@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Form, Button, Alert, Container, Card, Row, Col, Badge} from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../../../components/axios';
 
 function CreatePost() {
     const [course_id, setCourse_id] = useState('');
@@ -40,7 +40,7 @@ function CreatePost() {
         }
 
         try{
-            await axios.post('http://localhost:3000/api/posts',{
+            await axiosInstance.post('/posts',{
                 course_id,
                 context,
                 tag,

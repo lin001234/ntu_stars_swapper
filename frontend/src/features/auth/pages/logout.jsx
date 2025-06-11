@@ -1,14 +1,13 @@
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Button } from 'react-bootstrap';
-
+import { axiosInstance } from '../../../components/axios';
 const LogOut =({ show, onHide, isLoading }) =>{
     const navigate=useNavigate();
-    const API_BASE_URL = 'http://localhost:3000';
 
     const handleLogout = async () =>{
         try{
-            await axios.post(`http://localhost:3000/api/auth/logout`, {} ,{
+            await axiosInstance.post(`/auth/logout`, {} ,{
                 withCredentials: true,
             });
             window.location.href = '/login'; // Force full refresh

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, Button, Form, Alert, Badge } from 'react-bootstrap';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../../../components/axios';
 
 function PostDetailSelf(){
     const {id} = useParams();
@@ -20,7 +20,7 @@ function PostDetailSelf(){
     useEffect(() =>{
         const fetchPost = async () =>{
             try{
-                const response = await axios.get(`http://localhost:3000/api/posts/${id}`);
+                const response = await axiosInstance.get(`/posts/${id}`);
                 const postData =response.data.id_post;
 
                 setPost(postData);
@@ -68,7 +68,7 @@ function PostDetailSelf(){
         }
 
         try{
-            const response = await axios.put(`http://localhost:3000/api/posts/${id}`,{
+            const response = await axiosInstance.put(`/posts/${id}`,{
                 course_id,
                 context,
                 tag,
@@ -97,7 +97,7 @@ function PostDetailSelf(){
     const handleDelete = async() =>{
         if (window.confirm('Are you sure you want to delete this post?')){
             try{
-                await axios.delete(`http://localhost:3000/api/posts/${id}`,{
+                await axiosInstance.delete(`/posts/${id}`,{
                     withCredentials: true
                 });
                 navigate('/home');

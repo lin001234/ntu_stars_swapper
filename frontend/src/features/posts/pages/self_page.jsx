@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Row, Col, Card, Badge, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import { axiosInstance } from '../../../components/axios';
 import PostCard from "../../../components/PostCard";
 
 function Self_page() {
@@ -16,8 +16,8 @@ function Self_page() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/api/posts/self",
+        const response = await axiosInstance.get(
+          "/posts/self",
           {
             withCredentials: true,
           }

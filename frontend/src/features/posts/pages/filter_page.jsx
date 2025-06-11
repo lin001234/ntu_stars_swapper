@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import {Row,Col,Button,Form,Spinner,Alert,Badge,InputGroup} from "react-bootstrap";
-import axios from "axios";
+import { axiosInstance } from '../../../components/axios';
 import PostCard from "../../../components/PostCard.jsx";
 
 function Filtered_posts() {
@@ -36,8 +36,8 @@ function Filtered_posts() {
           }
         }
       }
-      const response = await axios.get(
-        "http://localhost:3000/api/posts/search",
+      const response = await axiosInstance.get(
+        "/posts/search",
         { params }
       );
       setPosts(response.data.posts || []);
@@ -71,8 +71,8 @@ function Filtered_posts() {
         }
       }
 
-      const response = await axios.get(
-        "http://localhost:3000/api/posts/filter",
+      const response = await axiosInstance.get(
+        "/posts/filter",
         { params }
       );
       setPosts(response.data.posts || []);

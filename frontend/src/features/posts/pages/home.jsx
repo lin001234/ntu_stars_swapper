@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Row, Col } from "react-bootstrap";
 import PostCard from "../../../components/PostCard";
-import axios from "axios";
+import { axiosInstance } from '../../../components/axios';
 
 function Home() {
   const [posts, setPosts] = useState([]);
@@ -11,7 +11,7 @@ function Home() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/posts/");
+        const response = await axiosInstance.get("/posts/");
         // update posts with feteched data
         setPosts(response.data.allposts || []);
         setLoading(false);

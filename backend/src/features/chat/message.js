@@ -13,3 +13,25 @@ async function getChatMessage(chat_id){
     if(error) throw error;
     return data;
 }
+
+async function createChatMessage(chat_id,sender_id,content){
+    const {data,error} = await supabase
+    .from('messages')
+    .insert([{chat_id,sender_id,content}])
+    .select()
+    .single();
+
+    if(error) throw error;
+    return data;
+}
+
+async function deleteChatMessage(id,sender_id){
+    const {data,error} = await supabase
+    .from('messages')
+    .delete()
+    .eq('id', id)
+    .eq('sender_id', sender_id)
+
+    if(error) throw error;
+    return data;
+}

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Card, Button, Form, Alert, Badge} from 'react-bootstrap';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-
+import { axiosInstance } from '../../../components/axios';
+// Fix the join chat button later
 function PostDetail(){
     const {id} = useParams();
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ function PostDetail(){
     useEffect(() =>{
         const fetchPost = async () =>{
             try{
-                const response = await axios.get(`http://localhost:3000/api/posts/${id}`);
+                const response = await axiosInstance.get(`/posts/${id}`);
                 setPost(response.data.id_post);
                 setCourse_id(response.data.id_post.course_id);
                 setContext(response.data.id_post.context);
