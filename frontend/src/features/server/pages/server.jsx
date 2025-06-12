@@ -18,8 +18,16 @@ function Chat() {
   // Fetch messages on load
   useEffect(() => {
     const fetchMessages = async () => {
+      if(!chatId){
+        console.warn("chatId is undefined");
+        return;
+      }
       try {
-        const res = await axiosInstance.get(`/get-or-create`);
+        const res = await axiosInstance.get(`/chats/${chatId}`,
+          {
+            withCredentials:true
+          }
+        );
         setMessages(res.data?.messages || []);
       } catch (err) {
         console.error("Failed to load messages", err);
@@ -35,9 +43,8 @@ function Chat() {
     if (!input.trim()) return;
 
     try {
-      const res = await axiosInstance.post(
-        `/${chatId}`,
-        { context: input },
+      const res = await axiosInstance.post(`/chats/${chatId}`,
+        { content: input },
         { withCredentials: true }
       );
       // Optionally append the new message to chat view:
@@ -60,12 +67,12 @@ function Chat() {
             {messages.map((msg, i) => (
               <ListGroup.Item key={i} variant={msg.system ? "secondary" : "light"}>
                 {msg.system ? (
-                  <em>{msg.message}</em>
+                  <em>{msg.content}</em>
                 ) : (
                   <div>
-                    <strong>{msg.username}</strong>: {msg.message}
+                    <strong>{msg.sender_id}</strong>: {msg.content}
                     <div className="text-muted small">
-                      {new Date(msg.timestamp).toLocaleTimeString()}
+                      {new Date(msg.created_at).toLocaleTimeString()}
                     </div>
                   </div>
                 )}

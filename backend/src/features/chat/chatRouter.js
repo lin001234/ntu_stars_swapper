@@ -59,12 +59,12 @@ router.get('/:chat_id',async(req,res) =>{
 })
 
 // create new messages
-router.post('/:chat_id', async(req,res) =>{
+router.post('/:chat_id',requireAuth, async(req,res) =>{
     try{
         const {chat_id} = req.params;
         const sender_id = req.user.id;
         const {content} = req.body;
-        
+        console.log('Sending response', {sender_id : sender_id, chat_id:chat_id});
         if(!content){
             return res.status(400).json({
                 success:false,
