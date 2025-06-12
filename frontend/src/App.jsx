@@ -9,6 +9,7 @@ import CreatePost from './features/posts/pages/createPost';
 import PrivateRoute from './components/PrivateRoute';
 import PostDetail from './features/posts/pages/postDetail';
 import Self_page from './features/posts/pages/self_page';
+import Chat from './features/server/pages/server';
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
 import Filtered_posts from './features/posts/pages/filter_page';
 import PostDetailSelf from './features/posts/pages/postDetailSelf';
@@ -33,6 +34,7 @@ function App() {
               <Route path='/post/self' element={<Self_page />} />
               <Route path='/post/filter' element={<Filtered_posts />} />
               <Route path='/post/:id/self' element={<PostDetailSelf />} />
+              <Route path='/chat/:chatid' element={<Chat />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/" replace />} />

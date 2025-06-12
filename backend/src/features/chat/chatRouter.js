@@ -10,7 +10,7 @@ router.post('/get-or-create', requireAuth, async(req,res) =>{
         const user1_id = req.user.id;
         const {user_id:user2_id} = req.body;
 
-        // try and get exisiting chat
+        // try and get existing chat
         let chatId;
         try{
             chatId= await chatController.getChatId(user1_id, user2_id);
@@ -54,7 +54,7 @@ router.get('/:chat_id',async(req,res) =>{
         res.json({success:true,messages});
     } catch(err){
         console.error("Failed to fetch messages:", err.message);
-        res.status(500).json({success:falase,error:'Failed to get messages'});
+        res.status(500).json({success:false,error:'Failed to get messages'});
     };
 })
 
