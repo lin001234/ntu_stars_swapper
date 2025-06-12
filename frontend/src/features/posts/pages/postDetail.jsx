@@ -305,6 +305,7 @@ function PostDetail(){
                             <Card.Title>{post.title || "Post Details"}</Card.Title>
                             <ChatButton 
                                 postOwnerId={post.user_id}
+                                postOwnerUsername={post.username}
                                 currentUserId={currentUser.id}
                                 size="sm"
                                 variant="outline-primary"

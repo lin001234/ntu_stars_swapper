@@ -33,7 +33,7 @@ function App() {
               <Route path="/post/:id" element={<PostDetail />} />
               <Route path='/post/self' element={<Self_page />} />
               <Route path='/post/filter' element={<Filtered_posts />} />
-              <Route path='/chat/:chatId' element={<Chat />} />
+              <Route path='/chat/:chatId/:postOwnerUsername' element={<Chat />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/" replace />} />

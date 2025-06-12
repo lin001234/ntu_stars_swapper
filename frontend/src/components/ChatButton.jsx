@@ -3,7 +3,7 @@ import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { axiosInstance } from './axios';
 
-const ChatButton = ({ postOwnerId, currentUserId, className = '', size = 'sm', variant = 'primary' }) => {
+const ChatButton = ({ postOwnerId,postOwnerUsername, currentUserId, className = '', size = 'sm', variant = 'primary' }) => {
 	const [isLoading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -28,7 +28,7 @@ const ChatButton = ({ postOwnerId, currentUserId, className = '', size = 'sm', v
             console.log('Chat response:', response.data); // Debug log
 
             if(response.data.success){
-                navigate(`/chat/${response.data.chatId}`);
+                navigate(`/chat/${response.data.chatId}/${postOwnerUsername}`);
             }
             else{
                 console.error('Failed to start chat:', response.data.error);
