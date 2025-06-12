@@ -20,8 +20,11 @@ router.get('/', async(req,res)=>{
 //Route to get current user post
 router.get('/self', requireAuth, async(req,res) =>{
     try{
+        const limit = parseInt(req.query.limit)||15;
+        const offset = parseInt(req.query.offset)||0;
+
         const userId = req.user.id;
-        const self_posts = await posts.getOwnPost(userId);
+        const self_posts = await posts.getOwnPost(userId,limit,offset);
         res.json({success:true, self_posts});
     } catch(err){
         console.error('Failed to fetch user posts:', err.message);

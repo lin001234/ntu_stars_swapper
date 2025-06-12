@@ -1,5 +1,5 @@
 import { useState, useEffect,useCallback, useRef } from "react";
-import { Row, Col } from "react-bootstrap";
+import { Row, Col,Button } from "react-bootstrap";
 import PostCard from "../../../components/PostCard";
 import { axiosInstance } from '../../../components/axios';
 
@@ -11,6 +11,24 @@ function Home() {
   const [offset,setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showTopButton,setShowTopButton] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowTopButton(true);
+      } else {
+        setShowTopButton(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   
   const observer=useRef();
 
@@ -77,6 +95,23 @@ function Home() {
           );
         })}
       </Row>
+            {showTopButton && (
+        <Button
+          onClick={scrollToTop}
+          variant="secondary"
+          style={{
+            position: "fixed",
+            bottom: "30px",
+            right: "30px",
+            zIndex: 1000,
+            borderRadius: "50%",
+            padding: "10px 14px",
+            fontSize: "1.2rem"
+          }}
+        >
+          ↑
+        </Button>
+      )}
       {loading && <div>Loading more posts...</div>}
       {!hasMore && <div>No more posts</div>}
     </>
