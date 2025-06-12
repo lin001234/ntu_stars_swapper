@@ -5,7 +5,10 @@ const { requireAuth } = require('../../middleware/auth');
 // Route to get all posts
 router.get('/', async(req,res)=>{
     try{
-        const allposts = await posts.getAllPosts();
+        const limit = parseInt(req.query.limit)||15;
+        const offset = parseInt(req.query.offset)||0;
+
+        const allposts = await posts.getAllPosts(limit,offset);
         res.json({success:true,allposts});
     } catch(err){
         console.error('Failed to fetch all posts:', err.message);

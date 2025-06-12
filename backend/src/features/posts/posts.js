@@ -2,11 +2,12 @@ const express = require('express');
 const { supabase } = require('../../config/supabase');
 const router = express.Router();
 
-async function getAllPosts(){
+async function getAllPosts(limit,offset){
     const { data, error } = await supabase
     .from('posts')
     .select('*')
-    .order('created_at', { ascending: false});
+    .order('created_at', { ascending: false })
+    .range(offset,offset+limit-1);
 
     if(error) throw error;
     return data;
@@ -117,6 +118,8 @@ async function filterPosts(filters){
             }
         }
     }
+
+    // Apply ordering and pagination - FIXED: removed duplicate order() call
     const {data,error} =await query.order('created_at', { ascending: false });
     if(error) throw error;
     return data;

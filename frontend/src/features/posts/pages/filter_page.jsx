@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {Row,Col,Button,Form,Spinner,Alert,Badge,InputGroup} from "react-bootstrap";
 import { axiosInstance } from '../../../components/axios';
 import PostCard from "../../../components/PostCard.jsx";
 
 function Filtered_posts() {
   const [posts, setPosts] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset,setOffset] = useState(0);
   const [filters, setFilters] = useState({
     course_id: "",
     tag: "",
@@ -17,7 +19,7 @@ function Filtered_posts() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  
   // Only when clicking filter for exact string search
   const searchPosts = async () =>{
     setLoading(true);
