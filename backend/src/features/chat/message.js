@@ -8,16 +8,16 @@ async function getChatMessage(chat_id){
     .from('messages')
     .select('*')
     .eq('chat_id',chat_id)
-    .order('created_at', {ascending:false});
+    .order('created_at', {ascending:true});
 
     if(error) throw error;
     return data;
 }
 
-async function createChatMessage(chat_id,sender_id,content){
+async function createChatMessage(chat_id,sender_id,content,sender_username){
     const {data,error} = await supabase
     .from('messages')
-    .insert([{chat_id,sender_id,content}])
+    .insert([{chat_id,sender_id,content,sender_username}])
     .select()
     .single();
 

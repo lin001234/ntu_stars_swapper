@@ -63,6 +63,7 @@ router.post('/:chat_id',requireAuth, async(req,res) =>{
     try{
         const {chat_id} = req.params;
         const sender_id = req.user.id;
+        const sender_username=req.user?.user_metadata?.name;
         const {content} = req.body;
         console.log('Sending response', {sender_id : sender_id, chat_id:chat_id});
         if(!content){
@@ -72,7 +73,7 @@ router.post('/:chat_id',requireAuth, async(req,res) =>{
             });
         }
 
-        const newMessage= await message.createChatMessage(chat_id,sender_id,content);
+        const newMessage= await message.createChatMessage(chat_id,sender_id,content,sender_username);
         res.status(201).json({success:true, message:newMessage});
     }catch(err){
         console.error('Error creating message:', err.message);

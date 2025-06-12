@@ -70,7 +70,7 @@ function Chat() {
                   <em>{msg.content}</em>
                 ) : (
                   <div>
-                    <strong>{msg.sender_id}</strong>: {msg.content}
+                    <strong>{msg.sender_username}</strong>: {msg.content}
                     <div className="text-muted small">
                       {new Date(msg.created_at).toLocaleTimeString()}
                     </div>
