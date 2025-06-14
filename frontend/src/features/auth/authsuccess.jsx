@@ -1,11 +1,17 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useContext } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useContext,useState } from 'react';
 import { AuthContext } from './authContext';
+import { useAuthStore } from '../../store/useAuthStore';
 
 function AuthSuccess(){
     const navigate = useNavigate();
     const { setUser } = useContext(AuthContext);
+    const [searchParams] = useSearchParams();
+    const isNewUser=searchParams.get('newUser') === 'true';
+    // Socket
+    const { authUser, checkAuth, onlineUsers, isCheckingAuth } = useAuthStore();
+    const [isReady,setIsReady] = useState(false);
 
     useEffect(() => {
       fetch('http://localhost:3000/api/profile', {
@@ -21,11 +27,8 @@ function AuthSuccess(){
         // update user state in authcontext with fetched user data
         setUser(userData);
 
-        // Use a small delay to ensure state is updated before navigation
-        setTimeout(() => {
-            console.log('AuthSuccess: Navigating to /home');
-            navigate('/home', { replace: true });
-        }, 100);
+        // using of socket
+        checkAuth();
       })
       .catch((error) => {
         // If token invalid or no token, redirect to login page
@@ -33,8 +36,41 @@ function AuthSuccess(){
         setUser(null);
         navigate('/login', { replace: true });
       });
-  }, [navigate, setUser]);
+  }, [navigate, setUser,isNewUser,checkAuth]);
 
+  useEffect(() =>{
+
+    console.log('AuthSuccess: Checking state...');
+    console.log('authUser:', authUser);
+    console.log('onlineUsers:', onlineUsers);
+    console.log('isCheckingAuth:', isCheckingAuth);
+
+    if (!isCheckingAuth && authUser){
+      console.log('AuthSuccess: authUser:', authUser);
+      console.log('AuthSuccess: onlineUsers:', onlineUsers);
+
+      setIsReady(true);
+    }
+  }, [authUser, onlineUsers, isCheckingAuth]);
+
+  useEffect(() =>{
+    if(isReady){
+        console.log({ authUser })
+        console.log({ onlineUsers });
+
+        // Use a small delay to ensure state is updated before navigation
+        setTimeout(() => {
+            console.log('AuthSuccess: Navigating to /home');
+            if(isNewUser){
+              navigate('/profile', {replace:true});
+            }else{
+              navigate('/home', { replace: true });
+            }
+        }, 100);
+    }
+  },[isReady, authUser, onlineUsers, isNewUser, navigate])
+  
+    
     return (
         <div style={{ 
             display: 'flex', 

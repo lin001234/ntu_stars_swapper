@@ -4,7 +4,7 @@ const LoginPage = ({ onLogin, isLoading }) => {
   const handleGoogleLogin = () => {
     window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
-
+  
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
       <div className="container">

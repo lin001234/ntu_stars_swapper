@@ -41,9 +41,9 @@ exports.handleOauthCallback = async(req, res) =>{
 
             // Check if this is a new user and redirect accordingly
             if (req.user.isNewUser) {
-                res.redirect(`${process.env.CLIENT_URL}/profile` || 'http://localhost:5173/profile');
+                res.redirect(`${process.env.CLIENT_URL}/auth/success?newUser=true` || 'http://localhost:5173/auth/success?newUser=true');
             } else {
-                res.redirect(`${process.env.CLIENT_URL}/auth/success` || 'http://localhost:5173/auth/success');
+                res.redirect(`${process.env.CLIENT_URL}/auth/success?newUser=false` || 'http://localhost:5173/auth/success?newUser=false');
             }
         });
     }catch (err){

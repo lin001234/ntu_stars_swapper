@@ -34,7 +34,7 @@ router.put('/update',requireAuth,async(req,res) =>{
     }
 })
 
-router.get('/get', requireAuth,async(req,res) =>{
+router.get('/getId', requireAuth,async(req,res) =>{
     try{
         const user_id=req.user.id;
         console.log("User_id is ", user_id)
