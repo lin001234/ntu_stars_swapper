@@ -247,9 +247,10 @@
   outline: none;
   transition: all 0.3s ease;
   background-color: #f9fafb;
+  color: #111827;
 }
 
-.message-input-focus {
+.message-input:focus {
   border-color: #667eea;
   background-color: #ffffff;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -282,6 +283,22 @@
   transform: none;
   box-shadow: none;
 }
+
+.back-button {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  font-size: 18px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 
 /* Keyframe Animations */
 @keyframes pulse {

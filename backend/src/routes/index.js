@@ -2,7 +2,7 @@ const express=require('express');
 const router = express.Router();
 
 const authRoutes = require('../features/auth/authRouter');
-const profileRoutes = require('./profile');
+const profileRoutes = require('../features//profile/profileRouter');
 const userRoute = require('./users');
 const postRoutes = require('../features/posts/postRouter');
 const chatRoutes = require('../features/chat/chatRouter');

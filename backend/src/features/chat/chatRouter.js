@@ -14,12 +14,10 @@ router.post('/get-or-create', requireAuth, async(req,res) =>{
         let chatId;
         try{
             chatId= await chatController.getChatId(user1_id, user2_id);
-            console.log('Found existing chat:', chatId); // Debug log
         } catch(err){
             // If chat doesnt exist, create new one
             if(err.message.includes('Chats not found') || err.message.includes('not found')){
                 const newChat=await chatController.createChat(user1_id, user2_id);
-                console.log('Created new chat:', newChat); // Debug log
                 chatId = newChat.id;
             } else{
                 throw err;
@@ -45,6 +43,17 @@ router.get('/chat-id', requireAuth, async(req,res) =>{
         res.status(500).json({success:false,error:'Failed to get chatId'});
     };
 })
+// Get a user chats
+router.get('/UserChat-ids', requireAuth,async(req,res)=>{
+    try{
+        const user1_username=req.user.username;
+        const chats = await chatController.getUserChatIds(user1_username);
+        res.json({success:true,chats});
+    }catch(err){
+        console.error("Failed to fetch chatId")
+        res.status(500).json({success:false,error:"Failed to get all chatId for user"});
+    }
+})
 
 // Router to get msgs from specific chat
 router.get('/:chat_id',async(req,res) =>{
@@ -63,9 +72,7 @@ router.post('/:chat_id',requireAuth, async(req,res) =>{
     try{
         const {chat_id} = req.params;
         const sender_id = req.user.id;
-        const sender_username=req.user?.user_metadata?.name;
         const {content} = req.body;
-        console.log('Sending response', {sender_id : sender_id, chat_id:chat_id});
         if(!content){
             return res.status(400).json({
                 success:false,
@@ -73,7 +80,7 @@ router.post('/:chat_id',requireAuth, async(req,res) =>{
             });
         }
 
-        const newMessage= await message.createChatMessage(chat_id,sender_id,content,sender_username);
+        const newMessage= await message.createChatMessage(chat_id,sender_id,content);
         res.status(201).json({success:true, message:newMessage});
     }catch(err){
         console.error('Error creating message:', err.message);

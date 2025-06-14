@@ -158,7 +158,6 @@ router.put('/:id', requireAuth,async(req,res) => {
 router.post('/', requireAuth, async(req,res) =>{
     try{
         const userId=req.user.id;
-        const username=req.user?.user_metadata?.name;
         const {course_id,context,tag,index_id,index_exchange_id} = req.body;
         
         if (!course_id || !context || !tag || !index_id || !index_exchange_id){
@@ -168,7 +167,7 @@ router.post('/', requireAuth, async(req,res) =>{
             });
         }
 
-        const newPost= await posts.createPost(userId,course_id,context,tag,index_id,index_exchange_id,username);
+        const newPost= await posts.createPost(userId,course_id,context,tag,index_id,index_exchange_id);
         res.status(201).json({success: true, post:newPost});
     }catch(err){
         console.error('Error creating post:', err.message);
@@ -202,7 +201,16 @@ router.delete('/:id', requireAuth, async(req,res) => {
     }
 })
 
-
+router.get('/username', requireAuth, async(req,res) =>{
+    try{
+        const {id}=req.query;
+        const username=await posts.getPostUsername(id);
+        res.json({success:true,username});
+    }catch (err){
+        console.error('Error getting username',err.message);
+        res.status(500).json({success:false,error:'Failed to get username'});
+    }
+})
 
 
 

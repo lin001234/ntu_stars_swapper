@@ -5,7 +5,7 @@ const session = require('express-session');
 const passport = require('passport');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-
+const userRoute = require('./src/routes/users');
 const mainRoutes= require('./src/routes/index');
 require('./src/config/passport');
 
@@ -55,7 +55,7 @@ app.use(passport.session());
 
 // Register all routes
 app.use('/api', mainRoutes);
-
+app.use('/users',userRoute);
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
@@ -66,14 +66,6 @@ app.get('/', (req, res) => {
   res.send('API Server is running. No frontend is connected.');
 });
 
-
-// Protected route example
-app.get('/api/profile', (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  res.json({ user: req.user });
-});
 
 // Start the server
 server.listen(PORT, () => {

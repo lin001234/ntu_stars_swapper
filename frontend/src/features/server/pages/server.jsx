@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Form, Button, ListGroup, Spinner, Container, Row, Col, Badge } from "react-bootstrap";
 import "../server.css";
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate } from "react-router-dom";
 import { axiosInstance } from "../../../components/axios";
 
 function Chat() {
@@ -10,6 +10,7 @@ function Chat() {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -110,12 +111,16 @@ function Chat() {
   return (
     <div className="chat-container">
       {/* Chat Header */}
-      <div className="header">
-        <div className="header-content">
-          <div className="header-left">
-            <div className="avatar">💬</div>
-            <div className="header-info">
-              <h3 className="header-title">{postOwnerUsername}</h3>
+      <div className="chat-header">
+        <div className="chat-header-content">
+          <div className="chat-header-left">
+            <button className="back-button" onClick={() => navigate(-1)}>
+              ←
+            </button>
+            <div className="chat-avatar">💬</div>
+            <div className="chat-header-info">
+              <h3 className="chat-header-title">{postOwnerUsername}</h3>
+              <p className="chat-header-subtitle">Active now</p>
             </div>
           </div>
         </div>
@@ -187,7 +192,7 @@ function Chat() {
         <form onSubmit={sendMessage} className="input-form">
           <input
             type="text"
-            className={`message-input ${input ? 'focus' : ''}`}
+            className="message-input"
             placeholder="Type a message..."
             value={input}
             onChange={(e) => setInput(e.target.value)}

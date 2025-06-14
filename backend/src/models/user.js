@@ -1,7 +1,25 @@
 const { supabaseAdmin } = require('../config/supabase');
 
 class User {
-    static async findById(id){
+    static async getAll() {
+      try {
+        const { data, error } = await supabaseAdmin
+        .from('user_profiles')
+        .select('*');
+        
+        if (error) {
+          throw error;
+        }
+        
+        return data;
+        
+      } catch (error) {
+        console.error('Error getting all users:', error);
+        throw error;
+      }
+    }
+    
+    /*static async findById(id){
         try {
             const {data, error} = await supabaseAdmin.auth.admin.getUserById(id);
 
@@ -120,31 +138,9 @@ class User {
       console.error('Error deleting user:', error);
       throw error;
     }
-  }
+  }*/
   
-  static async getAll() {
-    try {
-      const { data, error } = await supabaseAdmin.auth.admin.listUsers();
-      
-      if (error) {
-        throw error;
-      }
-      
-      return data.users.map(user => ({
-        id: user.id,
-        email: user.email,
-        name: user.user_metadata?.name || user.user_metadata?.full_name,
-        avatar: user.user_metadata?.avatar_url,
-        provider: user.user_metadata?.provider,
-        created_at: user.created_at,
-        updated_at: user.updated_at
-      }));
-      
-    } catch (error) {
-      console.error('Error getting all users:', error);
-      throw error;
-    }
-  }
+  
 }
 
 module.exports=User;

@@ -41,13 +41,13 @@ passport.use(new GoogleStrategy({
             
             if (updateError) {
               console.error('Error updating user metadata:', updateError);
-              return done(null, existingUser); // Still return existing user even if update fails
+              return done(null, { ...existingUser,isNewUser:false}); // Still return existing user even if update fails
             }
             
-            return done(null, updatedUser.user);
+            return done(null, { ...updatedUser.user, isNewUser:true});
           }
           
-          return done(null, existingUser);
+          return done(null, { ...existingUser, isNewUser: false });
         }
 
          // Create new user if doesn't exist
@@ -67,7 +67,7 @@ passport.use(new GoogleStrategy({
         console.error('Error creating user:', error);
         return done(error,null);
       }
-        return done(null,data.user);
+        return done(null,{ ...data.user, isNewUser: true });
     }catch (error){
         console.error('Google OAuth error:', error);
         return done(error,null);

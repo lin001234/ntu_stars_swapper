@@ -4,7 +4,7 @@ const router = express.Router();
 
 async function getAllPosts(limit,offset){
     const { data, error } = await supabase
-    .from('posts')
+    .from('posts_with_usernames')
     .select('*')
     .order('created_at', { ascending: false })
     .range(offset,offset+limit-1);
@@ -15,7 +15,7 @@ async function getAllPosts(limit,offset){
 
 async function getOwnPost(userId,limit,offset){
     const {data,error} = await supabase
-    .from('posts')
+    .from('posts_with_usernames')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', {ascending : false})
@@ -26,7 +26,7 @@ async function getOwnPost(userId,limit,offset){
 }
 async function getPostbById(id){
     const {data,error} = await supabase
-    .from('posts')
+    .from('posts_with_usernames')
     .select('*')
     .eq('id', id)
     .single();
@@ -35,10 +35,10 @@ async function getPostbById(id){
     return data;
 }
 
-async function createPost(user_id,course_id,context,tag,index_id,index_exchange_id,username){
+async function createPost(user_id,course_id,context,tag,index_id,index_exchange_id){
     const {data, error}= await supabase
     .from('posts')
-    .insert([{user_id,course_id,context,tag,index_id,index_exchange_id,username}])
+    .insert([{user_id,course_id,context,tag,index_id,index_exchange_id}])
     .select()
     .single();
 
@@ -58,7 +58,7 @@ async function deletePost(id){
 
 // Exact string search for filter button
 async function searchPosts(filters){
-    let query = supabase.from('posts').select('*');
+    let query = supabase.from('posts_with_usernames').select('*');
     
     for (const key in filters){
         const value = filters[key];
@@ -87,7 +87,7 @@ async function searchPosts(filters){
 
 //substring search for autosearch
 async function filterPosts(filters){
-    let query = supabase.from('posts').select('*');
+    let query = supabase.from('posts_with_usernames').select('*');
     
     for (const key in filters){
         const value = filters[key];
@@ -158,6 +158,17 @@ async function updatePost(id,course_id,context,tag,index_id,index_exchange_id){
     return data?.[0]; // Return updated or original
 }
 
+async function getPostUsername(id){
+    const {data,error}=await supabase
+    .from('posts_with_usernames')
+    .select('username')
+    .eq('id',id)
+    .single();
+
+    if(error)throw error;
+    return data;
+
+}
 module.exports = {
   getAllPosts,
   getOwnPost,
@@ -167,4 +178,5 @@ module.exports = {
   deletePost,
   filterPosts,
   searchPosts,
+  getPostUsername,
 };

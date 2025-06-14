@@ -10,7 +10,6 @@ function PostDetail(){
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [currentUser, setCurrentUser] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [course_id, setCourse_id] = useState('');
     const [context, setContext] =useState('');
@@ -18,12 +17,18 @@ function PostDetail(){
     const [index_id, setIndex_id] =useState('');
     const [index_exchange_id, setIndex_exchange_id] =useState([]);
     const [currentExchangeId, setCurrentExchangeId] = useState('');
-
+    const [currentUser, setCurrentUser] = useState('');
     useEffect(() =>{
+        
         const fetchPost = async () =>{
             try{
                 const response = await axiosInstance.get(`/posts/${id}`);
+                const userData= await axiosInstance.get('/profile');
                 const postData =response.data.id_post;
+                setCurrentUser({
+                    id:userData.data.user?.id,
+                    username: userData.data.user.username,
+                });
                 setPost(postData);
                 setCourse_id(postData.course_id);
                 setContext(postData.context);
@@ -40,17 +45,7 @@ function PostDetail(){
             }
         };
 
-        const fetchCurrentUser = async() =>{
-            try{
-                const response= await axiosInstance.get('/auth/status');
-                console.log('Current user response:', response.data);
-                setCurrentUser(response.data.user);
-            }catch (err){
-                console.error('Failed to fetch current user:', err);
-            }
-        };
         fetchPost();
-        fetchCurrentUser();
     }, [id]);
 
     const handleAddExchangeId = () => {
@@ -123,8 +118,9 @@ function PostDetail(){
     if (loading) return <div>Loading...</div>;
     if (error) return <Alert variant="danger">{error}</Alert>;
     if (!post) return <div>Post not found</div>;
-
-    if(currentUser.id === post.user_id){
+    const isOwner = currentUser?.id === post?.user_id;
+    console.log("Sending:",{currentUser:currentUser,postUser:post.user_id});
+    if(isOwner){
         return (
         <div className="container mt-4">
             <Card className="shadow">

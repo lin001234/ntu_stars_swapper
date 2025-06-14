@@ -31,9 +31,11 @@ function NavigationBar() {
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="ms-auto">
                 <Nav.Link as={Link} to="/">Home</Nav.Link>
+                <Nav.Link as={Link} to="/profile">Profile</Nav.Link>
                 <Nav.Link as={Link} to="/post/filter">Search</Nav.Link>
                 <Nav.Link as={Link} to="/post/self">Own Posts</Nav.Link>
                 <Nav.Link as={Link} to="/create">Create Post</Nav.Link>
+                <Nav.Link as={Link} to="/chats">Chats</Nav.Link>
                 <Button 
                     variant="outline-light" 
                     className="ms-2"
