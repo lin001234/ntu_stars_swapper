@@ -45,13 +45,25 @@ router.get('/getId', requireAuth,async(req,res) =>{
                 profile: null  // Explicitly return null
             });
         }
-        res.status(201).json({success:true, profile:profile});
+        res.status(200).json({success:true, profile:profile});
     }catch(err){
         console.error('Error getting profile',err.message);
         res.status(500).json({success:false,error:'Failed to get user profile'});
     }
 })
 
+router.get('getotherUsers', requireAuth, async(req,res) =>{
+    try{
+        const user_id=req.user.id;
+        const users=await profiles.getAllProfile();
+        // Filter the users to exclude the logged-in user's profile
+        const filteredUsers = users.filter(user => user._id.toString() !== user_id.toString());
+        res.status(200).json({success:true,profiles:filteredUsers})
+    }catch(err){
+        console.error('Error getting users profile', err);
+        res.status(500).json({success:false,error:'Failed to get users profile'});
+    }
+}) 
 router.get('/',requireAuth,authController.profile);
 
 module.exports=router;

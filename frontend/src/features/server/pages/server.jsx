@@ -1,16 +1,66 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, Form, Button, ListGroup, Spinner, Container, Row, Col, Badge } from "react-bootstrap";
+//import { Card, Form, Button, ListGroup, Spinner, Container, Row, Col, Badge } from "react-bootstrap";
 import "../server.css";
 import { useParams,useNavigate } from "react-router-dom";
 import { axiosInstance } from "../../../components/axios";
+import { useChatStore } from "../../../store/useChatStore";
+import { useAuthStore } from "../../../store/useAuthStore";
 
 function Chat() {
   const { chatId,postOwnerUsername } = useParams();
-  const [messages, setMessages] = useState([]);
+  //const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const inputRef = useRef(null);
+  //const [loading, setLoading] = useState(true);
+  const{
+    messages,
+    setSelectedId,
+    getMessages,
+    sendMessage,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+    isMessageLoading,
+  } = useChatStore();
+
+  const{socket} = useAuthStore();
+  const socketRef = useRef(socket);
+
+  useEffect(() =>{
+    socketRef.current=socket;
+  }, [chatId, socket]);
+
+  // Function to mark messages as read
+  const markMessagesAsRead = async () => {
+    if (!chatId || !socketRef.current){
+      console.warn("Cannot mark messages as read: socket/chatId not ready");
+      return;
+    }
+    try {
+      // Mark as read in backend database
+      await axiosInstance.post('/chats/mark-read', 
+        { chatId }, 
+        { withCredentials: true }
+      );
+      
+      // Emit socket event to update real-time UI
+      socketRef.current.emit("markMessagesRead", { chatId });
+      
+      console.log(`Messages marked as read for chat: ${chatId}`);
+    } catch (err) {
+      console.error("Failed to mark messages as read", err);
+    }
+  };
+
+  // clear selectedUser when component is unmounted
+  useEffect(() =>{
+    return() =>{
+      setSelectedId(null);
+      unsubscribeFromMessages();
+      markMessagesAsRead();
+    }
+  }, []);
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -19,42 +69,44 @@ function Chat() {
 
   // Fetch messages on load
   useEffect(() => {
-    const fetchMessages = async () => {
-      if(!chatId){
-        console.warn("chatId is undefined");
-        return;
-      }
-      try {
-        const res = await axiosInstance.get(`/chats/${chatId}`,
-          {
-            withCredentials:true
-          }
-        );
-        setMessages(res.data?.messages || []);
-      } catch (err) {
-        console.error("Failed to load messages", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMessages();
-  }, [chatId]);
+    const fetchAndSub=async()=>{
+      if(!chatId) return;
 
-  const sendMessage = async (e) => {
+      setSelectedId(chatId);
+      await getMessages();
+      subscribeToMessages();
+
+      setTimeout(() => {
+        markMessagesAsRead();
+      }, 500);
+    };
+
+    fetchAndSub();
+  },[chatId]);
+
+  // Mark as read when user scrolls to bottom or interacts with chat
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      markMessagesAsRead();
+    };
+
+    // Mark as read when user clicks anywhere in the messages container
+    const messagesContainer = document.querySelector('.messages-container');
+    if (messagesContainer) {
+      messagesContainer.addEventListener('click', handleUserInteraction);
+      
+      return () => {
+        messagesContainer.removeEventListener('click', handleUserInteraction);
+      };
+    }
+  }, [chatId, socket]);
+
+  const HandleSendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    try {
-      const res = await axiosInstance.post(`/chats/${chatId}`,
-        { content: input },
-        { withCredentials: true }
-      );
-      // Optionally append the new message to chat view:
-      setMessages((prev) => [...prev, res.data.message]);
-      setInput("");
-    } catch (err) {
-      console.error("Failed to send message", err);
-    }
+    await sendMessage({content:input});
+    setInput("")
   };
 
   const formatMessageTime = (timestamp) => {
@@ -80,9 +132,9 @@ function Chat() {
   };
 
   // Group messages by date
-  const groupMessagesByDate = (messages) => {
+  const groupMessagesByDate = (msgs = []) => {
     const groups = {};
-    messages.forEach(msg => {
+    msgs.forEach((msg) => {
       const date = formatDate(msg.created_at);
       if (!groups[date]) {
         groups[date] = [];
@@ -92,19 +144,12 @@ function Chat() {
     return groups;
   };
 
-  const messageGroups = groupMessagesByDate(messages);
+  const messageGroups = groupMessagesByDate(messages|| []);
 
     // Send icon component
   const SendIcon = () => (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="m22 2-7 20-4-9-9-4zm0 0-10 10"/>
-    </svg>
-  );
-
-  // Close icon component  
-  const CloseIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="m18 6-12 12M6 6l12 12"/>
     </svg>
   );
 
@@ -128,7 +173,7 @@ function Chat() {
 
       {/* Messages Container */}
       <div className="messages-container">
-        {loading ? (
+        {isMessageLoading  ? (
           <div className="loading-container">
             <div className="spinner"></div>
             <p style={{ color: '#6b7280', margin: 0 }}>Loading messages...</p>
@@ -151,6 +196,9 @@ function Chat() {
                 <div
                   key={index}
                   ref={
+                    /* Maybe change if it works
+                    date === Object.keys(messageGroups).slice(-1)[0] &&
+                    index === msgs.length - 1*/
                     date ===
                     Object.keys(messageGroups)[Object.keys(messageGroups).length - 1] &&
                     index === msgs.length - 1
@@ -189,19 +237,20 @@ function Chat() {
 
       {/* Message Input */}
       <div className="input-container">
-        <form onSubmit={sendMessage} className="input-form">
+        <form onSubmit={HandleSendMessage} className="input-form">
           <input
             type="text"
             className="message-input"
             placeholder="Type a message..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            disabled={loading}
+            disabled={isMessageLoading}
+            ref={inputRef}
           />
           <button
             type="submit"
-            className={`send-button ${!input.trim() || loading ? 'disabled' : ''}`}
-            disabled={!input.trim() || loading}
+            className={`send-button ${!input.trim() || isMessageLoading ? 'disabled' : ''}`}
+            disabled={!input.trim() || isMessageLoading}
             onMouseEnter={(e) => {
               if (!e.target.disabled) {
                 e.target.style.transform = 'scale(1.1)';

@@ -48,8 +48,58 @@ async function deleteChatMessage(id,sender_id){
     return data;
 }
 
+// Get unread message counts for multiple chats
+async function getUnreadCounts(userId, chatIds) {
+    try {
+        const promises = chatIds.map(async (chatId) => {
+            const { count, error } = await supabase
+                .from('messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('chat_id', chatId)
+                .neq('sender_id', userId) // Don't count own messages
+                .eq('is_read', false);
+
+            if (error) throw error;
+            return { chatId, count: count || 0 };
+        });
+
+        const results = await Promise.all(promises);
+        
+        // Convert array to object format
+        const unreadCounts = {};
+        results.forEach(({ chatId, count }) => {
+            unreadCounts[chatId] = count;
+        });
+
+        return unreadCounts;
+    } catch (error) {
+        console.error('Error getting unread counts:', error);
+        throw error;
+    }
+}
+
+// Mark messages as read for a specific chat and user
+async function markMessagesAsRead(chatId, userId) {
+    try {
+        const { data, error } = await supabase
+            .from('messages')
+            .update({ is_read: true })
+            .eq('chat_id', chatId)
+            .neq('sender_id', userId) // Don't mark own messages
+            .eq('is_read', false);
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error marking messages as read:', error);
+        throw error;
+    }
+}
+
 module.exports={
     getChatMessage,
     createChatMessage,
     deleteChatMessage,
+    getUnreadCounts,
+    markMessagesAsRead,
 };

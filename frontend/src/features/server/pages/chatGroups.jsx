@@ -3,12 +3,15 @@ import { Card, Button, ListGroup, Spinner, Container, Row, Col, Badge, Alert } f
 import "../server.css";
 import { useNavigate } from "react-router-dom";
 import { axiosInstance } from "../../../components/axios";
+import { useAuthStore } from "../../../store/useAuthStore";
 
 function ChatGroups() {
     const [chats, setChats] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [currentUsername,setCurrentUser]=useState('');
+    const [unreadCounts, setUnreadCounts] = useState({});
+    const { onlineUsers,socket }= useAuthStore();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -21,26 +24,27 @@ function ChatGroups() {
                 const userData= await axiosInstance.get(`/profile`);
                 const currentUser=userData.data.user.username;
                 setCurrentUser(currentUser);
-                // If you want to fetch additional chat details, you can do it here
-                // For now, we'll work with the chat IDs you're getting
+                
                 const chatData = res.data?.chats || [];
                 const enhancedChats = chatData.map((chat) => {
                     const otherUsername = chat.user1_username === currentUser
                         ? chat.user2_username
                         : chat.user1_username;
-
+                    
+                    const isOnline = onlineUsers.some(user=> user.username===otherUsername);
                     return {
                         id: chat.chat_id,
                         title: `${otherUsername}`,
                         otherUsername,
                         lastMessage: "Click to view messages...",
                         timestamp: new Date().toLocaleDateString(),
-                        unreadCount: Math.floor(Math.random() * 5),
-                        isOnline: Math.random() > 0.5
+                        isOnline,
                     };
                 });
                 
                 setChats(enhancedChats);
+                // Fetch unread counts for all chats
+                fetchUnreadCounts(enhancedChats.map(chat => chat.id));
             } catch (err) {
                 console.error("Failed to load chats", err);
                 setError("Failed to load your chats. Please try again.");
@@ -50,9 +54,81 @@ function ChatGroups() {
         };
         
         fetchChats();
-    }, []);
+    }, [onlineUsers]);
 
-    const handleChatClick = (chatId,otherUsername) => {
+    // Fetch unread counts from backend
+    const fetchUnreadCounts = async (chatIds) => {
+        try {
+            const response = await axiosInstance.post('/chats/unread-counts', 
+                { chatIds }, 
+                { withCredentials: true }
+            );
+            if (response.data.success) {
+                setUnreadCounts(response.data.unreadCounts);
+            }
+        } catch (err) {
+            console.error("Failed to fetch unread counts", err);
+        }
+    };
+
+    // Socket listener for new messages (increment unread count)
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleNewMessage = (newMessage) => {
+            console.log("New message received in ChatGroups:", newMessage);
+            
+            // Only increment if user is not currently in that chat
+            const currentPath = window.location.pathname;
+            const isInChat = currentPath.includes(`/chat/${newMessage.chat_id}/`);
+            
+            if (!isInChat) {
+                setUnreadCounts(prev => ({
+                    ...prev,
+                    [newMessage.chat_id]: (prev[newMessage.chat_id] || 0) + 1
+                }));
+            }
+        };
+
+        const handleMessageRead = (data) => {
+            console.log("Message read event:", data);
+            setUnreadCounts(prev => ({
+                ...prev,
+                [data.chatId]: 0
+            }));
+        };
+
+        socket.on("newMessage", handleNewMessage);
+        socket.on("messagesRead", handleMessageRead);
+
+        return () => {
+            socket.off("newMessage", handleNewMessage);
+            socket.off("messagesRead", handleMessageRead);
+        };
+    }, [socket]);
+
+    const handleChatClick = async (chatId,otherUsername) => {
+        // Mark messages as read when entering chat
+        try {
+            await axiosInstance.post('/chats/mark-read', 
+                { chatId }, 
+                { withCredentials: true }
+            );
+            
+            // Reset unread count locally
+            setUnreadCounts(prev => ({
+                ...prev,
+                [chatId]: 0
+            }));
+
+            // Emit to socket that messages are read
+            if (socket) {
+                socket.emit("markMessagesRead", { chatId });
+            }
+        } catch (err) {
+            console.error("Failed to mark messages as read", err);
+        }
+
         // Navigate to the specific chat
         navigate(`/chat/${chatId}/${otherUsername}`);
     };
@@ -85,93 +161,104 @@ function ChatGroups() {
 
     return (
     <Container className="mt-4">
-        <Row>
-            <Col md={12} lg={10} xl={8} className="mx-auto">
-                <Card className="shadow-sm">
-                    <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h4 className="mb-0">
-                            <i className="fas fa-comments me-2"></i>
-                            Your Chats
-                        </h4>
-                    </Card.Header>
-                    
-                    <Card.Body className="p-0">
-                        {chats.length === 0 ? (
-                            <div className="text-center py-5">
-                                <i className="fas fa-comment-slash fa-3x text-muted mb-3"></i>
-                                <h5 className="text-muted">No chats yet</h5>
-                            </div>
-                        ) : (
-                            <ListGroup variant="flush">
-                                {chats.map((chat) => (
-                                    <ListGroup.Item 
-                                        key={chat.id}
-                                        className="chat-item border-0 border-bottom p-3"
-                                        action
-                                        onClick={() => handleChatClick(chat.id, chat.otherUsername)}
-                                    >
-                                        <div className="d-flex align-items-center">
-                                            <div className="position-relative me-3">
-                                                <div 
-                                                    className="rounded-circle d-flex align-items-center justify-content-center"
-                                                    style={{
-                                                        width: '40px',
-                                                        height: '40px',
-                                                        backgroundColor: '#007bff',
-                                                        color: 'white',
-                                                        fontSize: '1rem',
-                                                        fontWeight: 'bold'
-                                                    }}
-                                                >
-                                                    {chat.title.charAt(0)}
-                                                </div>
-                                                {chat.isOnline && (
+            <Row>
+                <Col md={12} lg={10} xl={8} className="mx-auto">
+                    <Card className="shadow-sm">
+                        <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h4 className="mb-0">
+                                <i className="fas fa-comments me-2"></i>
+                                Your Chats
+                            </h4>
+                        </Card.Header>
+                        
+                        <Card.Body className="p-0">
+                            {chats.length === 0 ? (
+                                <div className="text-center py-5">
+                                    <i className="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                                    <h5 className="text-muted">No chats yet</h5>
+                                </div>
+                            ) : (
+                                <ListGroup variant="flush">
+                                    {chats.map((chat) => (
+                                        <ListGroup.Item 
+                                            key={chat.id}
+                                            className="chat-item border-0 border-bottom p-3"
+                                            action
+                                            onClick={() => handleChatClick(chat.id, chat.otherUsername)}
+                                        >
+                                            <div className="d-flex align-items-center">
+                                                <div className="position-relative me-3">
                                                     <div 
-                                                        className="position-absolute rounded-circle"
+                                                        className="rounded-circle d-flex align-items-center justify-content-center"
                                                         style={{
-                                                            width: '12px',
-                                                            height: '12px',
-                                                            backgroundColor: '#28a745',
-                                                            border: '2px solid white',
-                                                            bottom: '0',
-                                                            right: '0'
+                                                            width: '40px',
+                                                            height: '40px',
+                                                            backgroundColor: '#007bff',
+                                                            color: 'white',
+                                                            fontSize: '1rem',
+                                                            fontWeight: 'bold'
                                                         }}
-                                                    />
-                                                )}
-                                            </div>
-                                            
-                                            <div className="flex-grow-1">
-                                                <div className="d-flex justify-content-between align-items-center">
-                                                    <h6 className="mb-0 fw-bold text-dark">
-                                                        {chat.title}
-                                                    </h6>
-                                                    <small className="text-muted">
-                                                        {chat.timestamp}
-                                                    </small>
+                                                    >
+                                                        {chat.title.charAt(0)}
+                                                    </div>
+                                                    {chat.isOnline && (
+                                                        <div 
+                                                            className="position-absolute rounded-circle"
+                                                            style={{
+                                                                width: '12px',
+                                                                height: '12px',
+                                                                backgroundColor: '#28a745',
+                                                                border: '2px solid white',
+                                                                bottom: '0',
+                                                                right: '0'
+                                                            }}
+                                                        />
+                                                    )}
                                                 </div>
-                                                <p className="mb-0 text-muted small">
-                                                    {chat.lastMessage}
-                                                </p>
+                                                
+                                                <div className="flex-grow-1">
+                                                    <div className="d-flex justify-content-between align-items-center">
+                                                        <h6 className="mb-0 fw-bold text-dark">
+                                                            {chat.title}
+                                                        </h6>
+                                                        <div className="d-flex align-items-center">
+                                                            <small className="text-muted me-2">
+                                                                {chat.timestamp}
+                                                            </small>
+                                                            {unreadCounts[chat.id] > 0 && (
+                                                                <Badge 
+                                                                    bg="danger" 
+                                                                    className="rounded-pill"
+                                                                    style={{ fontSize: '0.7rem' }}
+                                                                >
+                                                                    {unreadCounts[chat.id] > 99 ? '99+' : unreadCounts[chat.id]}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <p className="mb-0 text-muted small">
+                                                        {chat.lastMessage}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </ListGroup.Item>
-                                ))}
-                            </ListGroup>
+                                        </ListGroup.Item>
+                                    ))}
+                                </ListGroup>
+                            )}
+                        </Card.Body>
+                        
+                        {chats.length > 0 && (
+                            <Card.Footer className="text-center bg-light py-2">
+                                <small className="text-muted">
+                                    Showing {chats.length} chat{chats.length !== 1 ? 's' : ''}
+                                </small>
+                            </Card.Footer>
                         )}
-                    </Card.Body>
-                    
-                    {chats.length > 0 && (
-                        <Card.Footer className="text-center bg-light py-2">
-                            <small className="text-muted">
-                                Showing {chats.length} chat{chats.length !== 1 ? 's' : ''}
-                            </small>
-                        </Card.Footer>
-                    )}
-                </Card>
-            </Col>
-        </Row>
-    </Container>
-);
+                    </Card>
+                </Col>
+            </Row>
+        </Container>
+    );
 }
 
 export default ChatGroups;

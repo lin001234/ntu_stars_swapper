@@ -2,6 +2,14 @@ const express = require('express');
 const { supabase } = require('../../config/supabase');
 const router= express.Router();
 
+async function getAllProfile(){
+    const{data,error}= await supabase
+    .from('user_profiles')
+    .select('*')
+
+    if(error) throw error;
+    return data;
+}
 async function createProfile(user_id){
     const {data,error} = await supabase
     .from('user_profiles')
@@ -40,4 +48,5 @@ module.exports={
     createProfile,
     updateProfile,
     getprofile,
+    getAllProfile,
 }

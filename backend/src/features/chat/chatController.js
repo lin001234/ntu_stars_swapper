@@ -48,8 +48,20 @@ async function getUserChatIds(user1_username){
     if(error) throw error;
     return data;
 }
+
+async function getChatUserIds(id){
+    const {data,error} = await supabase
+    .from('chats')
+    .select('user1_id,user2_id')
+    .eq('id',id)
+    .single();
+
+    if(error) throw error;
+    return data;
+}
 module.exports={
     createChat,
     getChatId,
     getUserChatIds,
+    getChatUserIds
 }

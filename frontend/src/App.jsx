@@ -14,8 +14,39 @@ import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
 import Filtered_posts from './features/posts/pages/filter_page';
 import ChatGroups from './features/server/pages/chatGroups';
 import UpdateProfile from './features/auth/pages/profile'
-
+import { useAuthStore } from './store/useAuthStore';
+import {useEffect} from 'react';
 function App() {
+  const { authUser, checkAuth, connectSocket, disconnectSocket, socket, isCheckingAuth } = useAuthStore();
+
+  useEffect(() => {
+    // Only check auth on initial load
+    if (isCheckingAuth) {
+      checkAuth();
+    }
+  }, []); // Empty dependency array for initial load only
+
+   useEffect(() => {
+    // Handle socket connection based on auth state
+    if (authUser && authUser.user && authUser.user.id) {
+      // User is authenticated, ensure socket is connected
+      if (!socket?.connected) {
+        console.log('App: User authenticated, connecting socket');
+        connectSocket();
+      }
+    } else if (!authUser && socket?.connected) {
+      // User is not authenticated but socket is connected, disconnect
+      console.log('App: User not authenticated, disconnecting socket');
+      disconnectSocket();
+    }
+  }, [authUser, socket?.connected]); // Only depend on authUser and socket connection state
+
+  // Cleanup socket on unmount
+  useEffect(() => {
+    return () => {
+      disconnectSocket();
+    };
+  }, []);
 
   return (
     <AuthProvider>

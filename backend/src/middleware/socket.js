@@ -13,22 +13,72 @@ const io = new SocketServer(server, {
   },
 });
 
-const userSocketMap={}; // {userId:socketId}
+const userSocketMap={}; // {[userId]:{socketId,username}}
+
+export function getReceiverSocketId(userId) {
+  return userSocketMap[userId]?.socketId;
+}
+
 // WebSocket connection handler
 io.on('connection', (socket) => {
   console.log('New client connected',socket.id);
 
   const userId = socket.handshake.query.userId;
-  if (userId) userSocketMap[userId] = socket.id
+  const username= socket.handshake.query.username;
 
-  // io.emit() is used to send events to all connected clients
-  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  console.log("Connection attempt - userId:", userId, "username:", username);
+
+  // Only add to socket map if we have valid userId and username
+  if (userId && username && userId !== 'undefined' && username !== 'undefined') {
+    userSocketMap[userId] = { socketId: socket.id, username };
+    console.log(`User ${username} (${userId}) connected with socket ${socket.id}`);
+    console.log("Current userSocketMap:", Object.keys(userSocketMap));
+    
+    // Emit updated online users list
+    emitOnlineUsers();
+  } else {
+    console.log("Invalid connection attempt - missing or invalid userId/username");
+    console.log("Received userId:", userId, "username:", username);
+    // Optionally disconnect invalid connections
+    socket.disconnect(true);
+    return;
+  }
+
+  socket.on("markMessagesRead", (data) => {
+  
+    const { chatId } = data;
+    console.log(`User ${socket.id} marked messages as read in chat ${chatId}`);
+    
+    // Emit to all clients in the chat that messages have been read
+    // This helps synchronize read status across multiple devices/tabs
+    socket.emit('messagesRead', { 
+      chatId, 
+      readBy: userId 
+    });
+});
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected',socket.id);
-    delete userSocketMap[userId];
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    console.log('Client disconnected:', socket.id);
+    if (userId && userSocketMap[userId]) {
+      console.log(`User ${username} (${userId}) disconnected`);
+      delete userSocketMap[userId];
+      emitOnlineUsers();
+    }
+  });
+
+  // Handle connection errors
+  socket.on('error', (error) => {
+    console.log('Socket error:', error);
   });
 });
+
+function emitOnlineUsers(){
+  const onlineUsers= Object.entries(userSocketMap).map(([userId,data]) =>({
+    userId,
+    username: data.username
+  }));
+  console.log("Emitting online users:", onlineUsers);
+  io.emit("getOnlineUsers", onlineUsers);
+}
 
 export {io,app,server};

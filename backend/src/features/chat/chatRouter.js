@@ -3,6 +3,7 @@ const chatController = require('./chatController');
 const message = require('./message');
 const router = express.Router();
 const { requireAuth } = require('../../middleware/auth');
+const {getReceiverSocketId, io} = require('../../middleware/socket');
 
 // Route to get or create chat
 router.post('/get-or-create', requireAuth, async(req,res) =>{
@@ -55,6 +56,49 @@ router.get('/UserChat-ids', requireAuth,async(req,res)=>{
     }
 })
 
+// Get unread message counts for multiple chats
+router.post('/unread-counts', requireAuth, async(req, res) => {
+    try {
+        const { chatIds } = req.body;
+        const userId = req.user.id;
+        
+        if (!Array.isArray(chatIds)) {
+            return res.status(400).json({
+                success: false,
+                error: 'chatIds must be an array'
+            });
+        }
+
+        const unreadCounts = await message.getUnreadCounts(userId, chatIds);
+        res.json({ success: true, unreadCounts });
+    } catch (err) {
+        console.error("Failed to fetch unread counts:", err.message);
+        res.status(500).json({ success: false, error: 'Failed to get unread counts' });
+    }
+});
+
+// Mark messages as read
+router.post('/mark-read', requireAuth, async(req, res) => {
+    try {
+        const { chatId } = req.body;
+        const userId = req.user.id;
+        
+        if (!chatId) {
+            return res.status(400).json({
+                success: false,
+                error: 'chatId is required'
+            });
+        }
+
+        await message.markMessagesAsRead(chatId, userId);
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Failed to mark messages as read:", err.message);
+        res.status(500).json({ success: false, error: 'Failed to mark messages as read' });
+    }
+});
+
 // Router to get msgs from specific chat
 router.get('/:chat_id',async(req,res) =>{
     try{
@@ -79,8 +123,23 @@ router.post('/:chat_id',requireAuth, async(req,res) =>{
                 error: 'Insufficient details'
             });
         }
-
+        
         const newMessage= await message.createChatMessage(chat_id,sender_id,content);
+
+        // get userIds of both users to get receiver_id
+        const { user1_id, user2_id }=await chatController.getChatUserIds(chat_id);
+
+        const receiver_Id = sender_id ===user1_id?user2_id:user1_id;
+        
+        // Socket emitting to receiver socket(Implement how to get receiver_id NOW)
+        const receiverSocketId=getReceiverSocketId(receiver_Id);
+
+        console.log("In creating msgs, receiverSocketId is", receiverSocketId);
+        console.log("In creating msgs, newMessage is", newMessage);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", newMessage);
+        }
+
         res.status(201).json({success:true, message:newMessage});
     }catch(err){
         console.error('Error creating message:', err.message);
