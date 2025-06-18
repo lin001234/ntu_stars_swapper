@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Container for the entire chat */
 .chat-container {
   display: flex;
@@ -152,11 +156,56 @@
   margin-bottom: 20px;
 }
 
+/* Base message container */
 .message-container {
   display: flex;
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 16px;
+  width: 100%;
+}
+
+/* Current user messages - align to right */
+.message-container.current-user {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+/* Other user messages - align to left */
+.message-container.other-user {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+/* Avatar positioning */
+.message-container.current-user .message-avatar {
+  margin-left: 8px;
+  margin-right: 0;
+}
+
+.message-container.other-user .message-avatar {
+  margin-right: 8px;
+  margin-left: 0;
+}
+
+/* Message content alignment */
+.message-container.current-user .message-content {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.message-container.other-user .message-content {
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Message header alignment */
+.message-container.current-user .message-header {
+  flex-direction: row-reverse;
+}
+
+.message-container.other-user .message-header {
+  flex-direction: row;
 }
 
 .message-avatar {
@@ -178,6 +227,8 @@
 .message-content {
   flex: 1;
   max-width: 70%;
+  display: flex;
+  flex-direction: column;
 }
 
 .message-header {
@@ -206,6 +257,44 @@
   border: 1px solid #f3f4f6;
   word-break: break-word;
   line-height: 1.5;
+}
+
+/* Current user message bubble */
+.message-container.current-user .message-bubble {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 18px 4px 18px 18px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* Other user message bubble */
+.message-container.other-user .message-bubble {
+  background: #f1f3f4;
+  color: #333;
+  border-radius: 4px 18px 18px 18px;
+}
+
+/* Sender name styling for current user */
+.message-container.current-user .sender-name {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.message-container.other-user .sender-name {
+  color: #374151;
+  font-weight: 600;
+}
+
+/* Time stamp spacing */
+.message-container.current-user .message-time {
+  margin-right: 8px;
+  margin-left: 0;
+}
+
+.message-container.other-user .message-time {
+  margin-left: 8px;
+  margin-right: 0;
 }
 
 /* System message */
@@ -299,7 +388,6 @@
   background: rgba(255, 255, 255, 0.25);
 }
 
-
 /* Keyframe Animations */
 @keyframes pulse {
   0% {
@@ -321,3 +409,4 @@
     transform: rotate(360deg);
   }
 }
+

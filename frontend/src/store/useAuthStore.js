@@ -49,6 +49,7 @@ export const useAuthStore = create(persist(
             const { authUser,socket } = get();
             const userId = authUser?.user?.id; 
             const username= authUser?.user?.username;
+            const avatar_url=authUser?.user?.avatar_url;
             // More robust validation
             if (!authUser || !authUser.user || !authUser.user.id || !authUser.user.username) {
                 console.log('connectSocket: Invalid authUser data, not connecting');
@@ -73,6 +74,7 @@ export const useAuthStore = create(persist(
                 query: {
                     userId,
                     username,
+                    avatar_url,
                 },
                 autoConnect:true,
                 reconnectionAttempts: 5,

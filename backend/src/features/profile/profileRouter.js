@@ -52,7 +52,24 @@ router.get('/getId', requireAuth,async(req,res) =>{
     }
 })
 
-router.get('getotherUsers', requireAuth, async(req,res) =>{
+router.get('/getProfileUseName', requireAuth,async(req,res) =>{
+    try{
+        const {username}=req.query;
+        const profile=await profiles.getProfileByname(username);
+        if (!profile) {
+            return res.status(200).json({ 
+                success: true, 
+                profile: null  // Explicitly return null
+            });
+        }
+        res.status(200).json({success:true, profile:profile});
+    }catch(err){
+        console.error('Error getting profile',err.message);
+        res.status(500).json({success:false,error:'Failed to get user profile'});
+    }
+})
+
+router.get('/getotherUsers', requireAuth, async(req,res) =>{
     try{
         const user_id=req.user.id;
         const users=await profiles.getAllProfile();

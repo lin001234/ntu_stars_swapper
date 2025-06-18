@@ -27,10 +27,12 @@ export const useChatStore = create((set,get) =>({
         set({isMessageLoading:true});
         const {selectedChatId}=get();
         try{
-            const res= await axiosInstance.get(`/chats/${selectedChatId}`);
+            const res= await axiosInstance.get(`/chats/${selectedChatId}`,{
+                withCredentials:true
+            });
 
             const msgs = Array.isArray(res.data?.messages) ? res.data.messages : [];
-
+            console.log("GETMESSAGES", msgs)
             set({messages:msgs});
         } catch(err){
             console.error('Error getting messages', err);
@@ -40,13 +42,17 @@ export const useChatStore = create((set,get) =>({
     },
 
     sendMessage:async(messageData) =>{
-        const{messages} = get();
-        const {selectedChatId}=get();
+        const{messages,selectedChatId} = get();
         try{
             const res=await axiosInstance.post(`/chats/${selectedChatId}`,
                 messageData,
                 { withCredentials:true },
             );
+
+            if(res.data.isToxic){
+                alert("Message is toxic, please be nicer");
+                return;
+            }
             set({messages:[...messages,res.data.message]});
         } catch(err){
             console.error("Error sending messages", err);

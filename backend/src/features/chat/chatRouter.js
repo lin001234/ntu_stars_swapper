@@ -2,6 +2,7 @@ const express = require('express');
 const chatController = require('./chatController');
 const message = require('./message');
 const router = express.Router();
+const {checkToxicity}= require('../checkToxicity');
 const { requireAuth } = require('../../middleware/auth');
 const {getReceiverSocketId, io} = require('../../middleware/socket');
 
@@ -124,6 +125,17 @@ router.post('/:chat_id',requireAuth, async(req,res) =>{
             });
         }
         
+        // Check toxicity before creating message
+        const toxicityScore = await checkToxicity(content);
+        if (toxicityScore > 0.8) {
+        return res.status(200).json({
+            success: false,
+            isToxic: true,
+            message: 'Message blocked due to toxicity',
+            toxicityScore,
+        });
+        }
+
         const newMessage= await message.createChatMessage(chat_id,sender_id,content);
 
         // get userIds of both users to get receiver_id

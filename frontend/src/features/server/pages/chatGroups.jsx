@@ -26,21 +26,28 @@ function ChatGroups() {
                 setCurrentUser(currentUser);
                 
                 const chatData = res.data?.chats || [];
-                const enhancedChats = chatData.map((chat) => {
-                    const otherUsername = chat.user1_username === currentUser
-                        ? chat.user2_username
-                        : chat.user1_username;
-                    
-                    const isOnline = onlineUsers.some(user=> user.username===otherUsername);
-                    return {
-                        id: chat.chat_id,
-                        title: `${otherUsername}`,
-                        otherUsername,
-                        lastMessage: "Click to view messages...",
-                        timestamp: new Date().toLocaleDateString(),
-                        isOnline,
-                    };
-                });
+                const enhancedChats = await Promise.all(
+                    chatData.map(async (chat) => {
+                        const otherUsername = chat.user1_username === currentUser
+                            ? chat.user2_username
+                            : chat.user1_username;
+                        const profile=await axiosInstance.get('/profile/getProfileUseName',{
+                            withCredentials:true,
+                            params: {username:otherUsername},
+                        })
+                        const avatar_url=profile.data.profile.avatar_url;
+                        const isOnline = onlineUsers.some(user=> user.username===otherUsername);
+                        return {
+                            id: chat.chat_id,
+                            title: `${otherUsername}`,
+                            otherUsername,
+                            avatar_url,
+                            lastMessage: "Click to view messages...",
+                            timestamp: new Date().toLocaleDateString(),
+                            isOnline,
+                        };
+                    }
+                ));
                 
                 setChats(enhancedChats);
                 // Fetch unread counts for all chats
@@ -188,18 +195,23 @@ function ChatGroups() {
                                         >
                                             <div className="d-flex align-items-center">
                                                 <div className="position-relative me-3">
-                                                    <div 
-                                                        className="rounded-circle d-flex align-items-center justify-content-center"
-                                                        style={{
-                                                            width: '40px',
-                                                            height: '40px',
-                                                            backgroundColor: '#007bff',
-                                                            color: 'white',
-                                                            fontSize: '1rem',
-                                                            fontWeight: 'bold'
-                                                        }}
-                                                    >
-                                                        {chat.title.charAt(0)}
+                                                    {/* Avatar */}
+                                                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-200 border border-gray-300">
+                                                        {chat.avatar_url ? (
+                                                        <img
+                                                            src={chat.avatar_url}
+                                                            alt={chat.username}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.style.display = 'none';
+                                                            }}
+                                                        />
+                                                        ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-600">
+                                                            {chat.title.charAt(0)}
+                                                        </div>
+                                                        )}
                                                     </div>
                                                     {chat.isOnline && (
                                                         <div 

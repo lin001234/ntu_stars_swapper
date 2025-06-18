@@ -25,13 +25,13 @@ io.on('connection', (socket) => {
 
   const userId = socket.handshake.query.userId;
   const username= socket.handshake.query.username;
-
+  const avatar_url=socket.handshake.query.avatar_url;
   console.log("Connection attempt - userId:", userId, "username:", username);
 
   // Only add to socket map if we have valid userId and username
   if (userId && username && userId !== 'undefined' && username !== 'undefined') {
-    userSocketMap[userId] = { socketId: socket.id, username };
-    console.log(`User ${username} (${userId}) connected with socket ${socket.id}`);
+    userSocketMap[userId] = { socketId: socket.id, username,avatar_url};
+    console.log(`User ${username} (${userId},${avatar_url}) connected with socket ${socket.id}`);
     console.log("Current userSocketMap:", Object.keys(userSocketMap));
     
     // Emit updated online users list
@@ -75,7 +75,8 @@ io.on('connection', (socket) => {
 function emitOnlineUsers(){
   const onlineUsers= Object.entries(userSocketMap).map(([userId,data]) =>({
     userId,
-    username: data.username
+    username: data.username,
+    avatar_url:data.avatar_url
   }));
   console.log("Emitting online users:", onlineUsers);
   io.emit("getOnlineUsers", onlineUsers);

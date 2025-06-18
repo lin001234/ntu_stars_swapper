@@ -44,9 +44,20 @@ async function getprofile(user_id){
     return data;   
 }
 
+async function getProfileByname(username){
+    const {data,error}=await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('username',username)
+    .maybeSingle();
+
+    if(error) throw error;
+    return data;
+}
 module.exports={
     createProfile,
     updateProfile,
     getprofile,
     getAllProfile,
+    getProfileByname
 }

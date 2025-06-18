@@ -8,12 +8,11 @@ import { useAuthStore } from "../../../store/useAuthStore";
 
 function Chat() {
   const { chatId,postOwnerUsername } = useParams();
-  //const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
   const inputRef = useRef(null);
-  //const [loading, setLoading] = useState(true);
+  const [PostAvatar_url,setAvatarUrl] =useState("");
   const{
     messages,
     setSelectedId,
@@ -24,12 +23,29 @@ function Chat() {
     isMessageLoading,
   } = useChatStore();
 
-  const{socket} = useAuthStore();
+  const{socket,authUser,} = useAuthStore();
   const socketRef = useRef(socket);
+
 
   useEffect(() =>{
     socketRef.current=socket;
   }, [chatId, socket]);
+
+  useEffect(()=>{
+    const fetchAvatar=async()=>{
+      try{
+        const profile=await axiosInstance.get('/profile/getProfileUseName',{
+            withCredentials:true,
+            params: {username:postOwnerUsername},
+        })
+        const avatar_url=profile.data.profile.avatar_url;
+        setAvatarUrl(avatar_url);
+      } catch (err){
+        console.error('Error fetching avatar:',err);
+      }
+    }
+    fetchAvatar();
+  }, []);
 
   // Function to mark messages as read
   const markMessagesAsRead = async () => {
@@ -53,6 +69,7 @@ function Chat() {
     }
   };
 
+  
   // clear selectedUser when component is unmounted
   useEffect(() =>{
     return() =>{
@@ -75,11 +92,7 @@ function Chat() {
       setSelectedId(chatId);
       await getMessages();
       subscribeToMessages();
-
-      setTimeout(() => {
-        markMessagesAsRead();
-      }, 500);
-    };
+    }
 
     fetchAndSub();
   },[chatId]);
@@ -144,6 +157,11 @@ function Chat() {
     return groups;
   };
 
+  // check if message is from current user
+  const isCurrentUser=(message)=>{
+    return authUser && message.sender_username ===authUser.user.username;
+  }
+
   const messageGroups = groupMessagesByDate(messages|| []);
 
     // Send icon component
@@ -154,77 +172,124 @@ function Chat() {
   );
 
   return (
-    <div className="chat-container">
+  <div className="flex flex-col h-screen max-w-4xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-200">
       {/* Chat Header */}
-      <div className="chat-header">
-        <div className="chat-header-content">
-          <div className="chat-header-left">
-            <button className="back-button" onClick={() => navigate(-1)}>
-              ←
+      <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button 
+              className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors duration-200"
+              onClick={() => navigate(-1)}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
             </button>
-            <div className="chat-avatar">💬</div>
-            <div className="chat-header-info">
-              <h3 className="chat-header-title">{postOwnerUsername}</h3>
-              <p className="chat-header-subtitle">Active now</p>
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-xl font-bold border-2 border-white/30">
+              {PostAvatar_url ? (
+                <img
+                  src={PostAvatar_url}
+                  alt={postOwnerUsername}
+                  className="w-full h-full object-cover rounded-full"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-600">
+                  {postOwnerUsername?.[0]?.toUpperCase() || "?"}
+                </div>
+              )}
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">{postOwnerUsername}</h3>
+              <p className="text-blue-100 text-sm">Active now</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Messages Container */}
-      <div className="messages-container">
-        {isMessageLoading  ? (
-          <div className="loading-container">
-            <div className="spinner"></div>
-            <p style={{ color: '#6b7280', margin: 0 }}>Loading messages...</p>
+      <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-gray-50 to-gray-100 messages-container">
+        {isMessageLoading ? (
+          <div className="flex items-center justify-center h-full flex-col">
+            <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500">Loading messages...</p>
           </div>
         ) : messages.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">💬</div>
-            <p className="empty-text">No messages yet</p>
-            <p className="empty-subtext">
-              Start the conversation by sending a message below
-            </p>
+          <div className="flex items-center justify-center h-full flex-col text-gray-500">
+            <div className="text-6xl mb-4 opacity-30">💬</div>
+            <p className="text-lg font-medium">No messages yet</p>
+            <p className="text-sm">Start the conversation by sending a message below</p>
           </div>
         ) : (
           Object.entries(messageGroups).map(([date, msgs]) => (
-            <div key={date} className="message-group">
-              <div className="date-separator">
-                <div className="date-badge">{date}</div>
+            <div key={date} className="mb-8">
+              {/* Date Separator */}
+              <div className="flex justify-center my-6">
+                <div className="bg-white px-4 py-2 rounded-full text-sm text-gray-600 shadow-sm border border-gray-200">
+                  {date}
+                </div>
               </div>
+              
+              {/* Messages */}
               {msgs.map((message, index) => (
+                
                 <div
                   key={index}
                   ref={
-                    /* Maybe change if it works
-                    date === Object.keys(messageGroups).slice(-1)[0] &&
-                    index === msgs.length - 1*/
-                    date ===
-                    Object.keys(messageGroups)[Object.keys(messageGroups).length - 1] &&
-                    index === msgs.length - 1
-                      ? messagesEndRef
-                      : null
+                    date === Object.keys(messageGroups)[Object.keys(messageGroups).length - 1] &&
+                    index === msgs.length - 1 ? messagesEndRef : null
                   }
                 >
                   {message.system ? (
-                    <div className="system-message">
-                      <div className="system-badge">{message.content}</div>
+                    <div className="flex justify-center my-3">
+                      <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm italic border border-blue-200">
+                        {message.content}
+                      </div>
                     </div>
                   ) : (
-                    <div className="message-container">
-                      <div className="message-avatar">
-                        {message.sender_username?.charAt(0)?.toUpperCase() || 'U'}
+                    <div className={`flex items-start gap-3 mb-4 ${isCurrentUser(message) ? 'flex-row-reverse' : 'flex-row'}`}>
+                      {/* Avatar */}
+                      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-200 border border-gray-300">
+                        {message.sender_avatar_url ? (
+                          <img
+                            src={message.sender_avatar_url}
+                            alt={message.sender_username}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-sm font-bold text-blue-600">
+                            {message.sender_username?.[0]?.toUpperCase() || "?"}
+                          </div>
+                        )}
                       </div>
-                      <div className="message-content">
-                        <div className="message-header">
-                          <span className="sender-name">
+                      
+                      {/* Message Content */}
+                      <div className={`flex flex-col max-w-xs lg:max-w-md ${isCurrentUser(message) ? 'items-end' : 'items-start'}`}>
+                        {/* Header */}
+                        <div className={`flex items-center gap-2 mb-1 ${isCurrentUser(message) ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <span className={`text-sm font-semibold ${isCurrentUser(message) ? 'text-blue-600' : 'text-gray-700'}`}>
                             {message.sender_username || 'Unknown User'}
                           </span>
-                          <span className="message-time">
+                          <span className="text-xs text-gray-500">
                             {formatMessageTime(message.created_at)}
                           </span>
                         </div>
-                        <div className="message-bubble">{message.content}</div>
+                        
+                        {/* Message Bubble */}
+                        <div className={`px-4 py-2 rounded-2xl shadow-sm ${
+                          isCurrentUser(message)
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-sm'
+                            : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm'
+                        }`}>
+                          <p className="text-sm leading-relaxed">{message.content}</p>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -236,11 +301,11 @@ function Chat() {
       </div>
 
       {/* Message Input */}
-      <div className="input-container">
-        <form onSubmit={HandleSendMessage} className="input-form">
+      <div className="p-6 bg-white border-t border-gray-200">
+        <form onSubmit={HandleSendMessage} className="flex items-center gap-3">
           <input
             type="text"
-            className="message-input"
+            className="flex-1 px-6 py-3 bg-gray-100 border border-gray-300 rounded-full text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             placeholder="Type a message..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -249,20 +314,12 @@ function Chat() {
           />
           <button
             type="submit"
-            className={`send-button ${!input.trim() || isMessageLoading ? 'disabled' : ''}`}
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
+              !input.trim() || isMessageLoading
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-105'
+            } text-white`}
             disabled={!input.trim() || isMessageLoading}
-            onMouseEnter={(e) => {
-              if (!e.target.disabled) {
-                e.target.style.transform = 'scale(1.1)';
-                e.target.style.boxShadow = '0 4px 16px rgba(102, 126, 234, 0.6)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!e.target.disabled) {
-                e.target.style.transform = 'none';
-                e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
-              }
-            }}
           >
             <SendIcon />
           </button>
@@ -273,3 +330,4 @@ function Chat() {
 }
 
 export default Chat;
+
