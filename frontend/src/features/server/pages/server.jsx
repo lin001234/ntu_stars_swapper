@@ -314,7 +314,7 @@ function Chat() {
           />
           <button
             type="submit"
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-none ${
               !input.trim() || isMessageLoading
                 ? 'bg-gray-300 cursor-not-allowed'
                 : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-105'
