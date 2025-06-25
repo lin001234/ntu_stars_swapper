@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 //import { Card, Form, Button, ListGroup, Spinner, Container, Row, Col, Badge } from "react-bootstrap";
 import "../server.css";
 import { useParams,useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ function Chat() {
   const navigate = useNavigate();
   const inputRef = useRef(null);
   const [PostAvatar_url,setAvatarUrl] =useState("");
+  const [online, setOnline] = useState(false);
   const{
     messages,
     setSelectedId,
@@ -23,9 +24,8 @@ function Chat() {
     isMessageLoading,
   } = useChatStore();
 
-  const{socket,authUser,} = useAuthStore();
+  const{socket,authUser,onlineUsers} = useAuthStore();
   const socketRef = useRef(socket);
-
 
   useEffect(() =>{
     socketRef.current=socket;
@@ -69,6 +69,11 @@ function Chat() {
     }
   };
 
+  // Check if user is online 
+  useEffect(() => {
+      const isOnline = onlineUsers.some(user=> user.username === postOwnerUsername);
+      setOnline(isOnline);
+  }, [onlineUsers, postOwnerUsername]);
   
   // clear selectedUser when component is unmounted
   useEffect(() =>{
@@ -204,7 +209,11 @@ function Chat() {
             </div>
             <div>
               <h3 className="text-xl font-semibold">{postOwnerUsername}</h3>
-              <p className="text-blue-100 text-sm">Active now</p>
+                {online ? (
+                  <p className="text-blue-100 text-sm">Active now</p>
+                ) : (
+                 <p className="text-gray-300 text-sm">Offline</p>
+                )}
             </div>
           </div>
         </div>
